@@ -37,60 +37,57 @@ class CLIParser:
         self._parser = argparse.ArgumentParser()
         self.subparsers = self._parser.add_subparsers(dest="command", required=True)
 
-    def _add_file_or_string_group(
-        self,
-        parser: argparse.ArgumentParser,
-        verb: str,
-    ) -> None:
-        source_group = parser.add_mutually_exclusive_group(required=True)
-        source_group.add_argument(
-            "--file",
-            "-f",
-            type=argparse.FileType("r"),
-            help=f"the marrow file to {verb}",
-            metavar="path",
-            dest="source",
-        )
-        source_group.add_argument(
-            "--string",
-            "-s",
-            type=FakeFileType("r"),
-            help=f"the string to {verb}",
-            metavar="source",
-            dest="source",
-        )
+        self._global_flags_parent = self.get_global_flags_parent()
+        self._source_parent = self.get_source_parent()
 
-    def get_compile_parser(self) -> argparse.ArgumentParser:
-        parser = self.subparsers.add_parser(
-            "compile",
-            help="compile marrow code without running it",
-        )
-
-        self._add_file_or_string_group(parser, "compile")
-
-        return parser
-
-    def get_run_parser(self) -> argparse.ArgumentParser:
-        parser = self.subparsers.add_parser("run", help="run marrow code")
-
-        self._add_file_or_string_group(parser, "run")
-
-        return parser
-
-    def get_parser(self) -> argparse.ArgumentParser:
-        self._parser.add_argument(
+    def get_global_flags_parent(self) -> argparse.ArgumentParser:
+        parent = argparse.ArgumentParser(add_help=False)
+        parent.add_argument(
             "--verbose",
             "-vb",
             action="store_true",
             help="show in detail what is going on",
         )
-        self._parser.add_argument(
+        parent.add_argument(
             "--debug",
             "-d",
             action="store_true",
             help="get debugging information",
         )
 
+        return parent
+
+    def get_source_parent(self) -> argparse.ArgumentParser:
+        parent = argparse.ArgumentParser(add_help=False)
+        parent.add_argument(
+            "source",
+            nargs="?",
+            type=argparse.FileType("r"),
+            help="the marrow file to process",
+            metavar="path",
+        )
+
+        return parent
+
+    def get_compile_parser(self) -> argparse.ArgumentParser:
+        parser = self.subparsers.add_parser(
+            "compile",
+            help="compile marrow code without running it",
+            parents=[self._global_flags_parent, self._source_parent],
+        )
+
+        return parser
+
+    def get_run_parser(self) -> argparse.ArgumentParser:
+        parser = self.subparsers.add_parser(
+            "run",
+            help="run marrow code",
+            parents=[self._global_flags_parent, self._source_parent],
+        )
+
+        return parser
+
+    def get_parser(self) -> argparse.ArgumentParser:
         return self._parser
 
     def parse_args(self, args: list[str] | None = None) -> argparse.Namespace:

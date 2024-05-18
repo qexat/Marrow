@@ -19,13 +19,7 @@ pip install -e .
 Run a marrow file:
 
 ```sh
-marrow run --file <path>
-```
-
-Run marrow source directly from the command line:
-
-```sh
-marrow run --string <source>
+marrow run <path>
 ```
 
 Marrow programs can also be compiled without running. The `compile` command offers the same interface as `run`.
