@@ -67,7 +67,6 @@ class Machine(MacroOpVisitor[None]):
         ]
         self.old_memory: list[int | float] = [0 for _ in range(self.MEMORY_SIZE)]
 
-        self.register_tracking: set[RegisterNumber] = set()
         self.access_tracking: list[Access] = []
 
         self.logger = logger
@@ -234,7 +233,4 @@ class Machine(MacroOpVisitor[None]):
 
         if debug:
             self.logger.debug(f"execution time: {time_end - time_start:.4f}s")
-            self.logger.debug(
-                f"registers used: {', '.join(map(hex, self.register_tracking))}",
-            )
             self.logger.debug(self._generate_register_access_log())
