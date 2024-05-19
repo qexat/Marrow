@@ -9,7 +9,7 @@ if typing.TYPE_CHECKING:
     from marrow.compiler.common import BinaryOpTokenType
     from marrow.compiler.common import Token
     from marrow.compiler.common import UnaryOpTokenType
-    from marrow.compiler.types import MemoryLocation
+    from marrow.types import MemoryAddress
 
 
 class RValueVisitor[R_co](typing.Protocol):
@@ -35,8 +35,8 @@ class AtomicRValue(RValueBase):
 @attrs.frozen
 class BinaryRValue(RValueBase):
     kind: BinaryOpTokenType
-    left: MemoryLocation
-    right: MemoryLocation
+    left: MemoryAddress
+    right: MemoryAddress
 
     def accept[R](self, visitor: RValueVisitor[R]) -> R:
         return visitor.visit_binary_rvalue(self)
@@ -45,7 +45,7 @@ class BinaryRValue(RValueBase):
 @attrs.frozen
 class UnaryRValue(RValueBase):
     kind: UnaryOpTokenType
-    right: MemoryLocation
+    right: MemoryAddress
 
     def accept[R](self, visitor: RValueVisitor[R]) -> R:
         return visitor.visit_unary_rvalue(self)

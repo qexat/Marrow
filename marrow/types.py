@@ -4,7 +4,7 @@ Types that are used by both the compiler and the runtime.
 
 import typing
 
-type RegisterIndex = typing.Literal[
+type RegisterNumber = typing.Literal[
     0x0,
     0x1,
     0x2,
@@ -22,3 +22,9 @@ type RegisterIndex = typing.Literal[
     0xE,
     0xF,
 ]
+type MemoryAddress = int
+"""
+Memory address.
+
+---
+"""

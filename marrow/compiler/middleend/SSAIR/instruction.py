@@ -1,18 +1,22 @@
-import typing
+from __future__ import annotations
 
-from marrow.compiler.types import MemoryLocation
+import typing
 
 from .rvalue import AtomicRValue
 from .rvalue import BinaryRValue
-from .rvalue import RValue
 from .rvalue import UnaryRValue
+
+if typing.TYPE_CHECKING:
+    from marrow.types import MemoryAddress
+
+    from .rvalue import RValue
 
 
 class IRInstruction(typing.NamedTuple):
-    destination: MemoryLocation
+    destination: MemoryAddress
     rvalue: RValue
 
-    def is_dependent_on(self, location: MemoryLocation) -> bool:
+    def is_dependent_on(self, location: MemoryAddress) -> bool:
         match self.rvalue:
             case AtomicRValue(_):
                 return False

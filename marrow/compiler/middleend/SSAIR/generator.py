@@ -1,19 +1,25 @@
+from __future__ import annotations
+
+import typing
+
 from marrow.compiler.frontend.ast import expr
-from marrow.compiler.types import MemoryLocation
 
 from .instruction import IRInstruction
 from .rvalue import AtomicRValue
 from .rvalue import BinaryRValue
 from .rvalue import UnaryRValue
 
+if typing.TYPE_CHECKING:
+    from marrow.types import MemoryAddress
+
 
 class IRGenerator(expr.ExprVisitor[None]):
     def __init__(self) -> None:
         self.instructions: list[IRInstruction] = []
-        self.expr_registers: dict[expr.Expr, MemoryLocation] = {}
+        self.expr_registers: dict[expr.Expr, MemoryAddress] = {}
         self.location = 0
 
-    def allocate_location(self, expr: expr.Expr) -> MemoryLocation:
+    def allocate_location(self, expr: expr.Expr) -> MemoryAddress:
         location = self.location
 
         self.expr_registers[expr] = location

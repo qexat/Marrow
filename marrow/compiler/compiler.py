@@ -4,7 +4,7 @@ import io
 import time
 import typing
 
-from marrow.compiler.backend.instruction import DumpMemory
+from marrow.compiler.backend.macroop import DumpMemory
 from marrow.compiler.components import BytecodeGenerator
 from marrow.compiler.components import IRGenerator
 from marrow.compiler.components import Parser
@@ -20,8 +20,8 @@ from .resources import CompilerResources
 
 if typing.TYPE_CHECKING:
     from marrow.compiler.common import Expr
-    from marrow.compiler.common import Instruction
     from marrow.compiler.common import IRInstruction
+    from marrow.compiler.common import MacroOp
 
 
 class Compiler:
@@ -43,7 +43,7 @@ class Compiler:
         self.parse_tree_renderer: typing.Final = ParseTreeRenderer()
         self.ir_generator: typing.Final = IRGenerator()
         self.rvalue_renderer: typing.Final = RValueRenderer()
-        self.instruction_renderer: typing.Final = BytecodeRenderer()
+        self.bytecode_renderer: typing.Final = BytecodeRenderer()
         self.bytecode_generator: typing.Final = BytecodeGenerator(self.logger)
 
         self.log_preparative_setup(
@@ -101,21 +101,21 @@ class Compiler:
 
         return buffer.getvalue()
 
-    def make_bytecode_instructions_log(self, bytecode: list[Instruction]) -> str:
+    def make_bytecode_ops_log(self, bytecode: list[MacroOp]) -> str:
         buffer = io.StringIO()
 
-        for instruction in bytecode:
-            print(self.instruction_renderer.render(instruction), file=buffer)
+        for op in bytecode:
+            print(self.bytecode_renderer.render(op), file=buffer)
 
         return buffer.getvalue().removesuffix("\n")
 
-    def make_bytecode_generation_log(self, bytecode: list[Instruction]) -> str:
+    def make_bytecode_generation_log(self, bytecode: list[MacroOp]) -> str:
         buffer = io.StringIO()
 
-        print(f"generated {len(bytecode)} instructions", file=buffer)
+        print(f"generated {len(bytecode)} ops", file=buffer)
 
         if self.debug:
-            print(self.make_bytecode_instructions_log(bytecode), file=buffer)
+            print(self.make_bytecode_ops_log(bytecode), file=buffer)
 
         return buffer.getvalue()
 
@@ -146,7 +146,7 @@ class Compiler:
 
         if self.debug:
             bytecode.append(DumpMemory(0))
-            self.logger.info("injected memory dump instruction")
+            self.logger.info("injected memory dump op")
 
         self.resources.bytecode = bytecode
 

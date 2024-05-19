@@ -9,16 +9,16 @@ from marrow.compiler.middleend.SSAIR.rvalue import AtomicRValue
 from marrow.compiler.middleend.SSAIR.rvalue import BinaryRValue
 from marrow.compiler.middleend.SSAIR.rvalue import UnaryRValue
 
-from .instruction import Add
-from .instruction import Div
-from .instruction import Load
-from .instruction import Mod
-from .instruction import Mul
-from .instruction import Neg
-from .instruction import Pos
-from .instruction import Store
-from .instruction import StoreImmediate
-from .instruction import Sub
+from .macroop import Add
+from .macroop import Div
+from .macroop import Load
+from .macroop import Mod
+from .macroop import Mul
+from .macroop import Neg
+from .macroop import Pos
+from .macroop import Store
+from .macroop import StoreImmediate
+from .macroop import Sub
 
 if typing.TYPE_CHECKING:
     from marrow.compiler.common import BinaryOpTokenType
@@ -26,16 +26,16 @@ if typing.TYPE_CHECKING:
     from marrow.compiler.common import LiteralTokenType
     from marrow.compiler.common import Token
     from marrow.compiler.common import UnaryOpTokenType
-    from marrow.compiler.types import MemoryLocation
     from marrow.logger import Logger
-    from marrow.types import RegisterIndex
+    from marrow.types import MemoryAddress
+    from marrow.types import RegisterNumber
 
-    from .instruction import BinOpInstruction
-    from .instruction import Instruction
-    from .instruction import UnOpInstruction
+    from .macroop import BinOpMacroOp
+    from .macroop import MacroOp
+    from .macroop import UnOpMacroOp
 
 
-BINOP_MNEMONIC_MAPPING: dict[BinaryOpTokenType, type[BinOpInstruction]] = {
+BINOP_MNEMONIC_MAPPING: dict[BinaryOpTokenType, type[BinOpMacroOp]] = {
     TokenType.MINUS: Sub,
     TokenType.PERCENT: Mod,
     TokenType.PLUS: Add,
@@ -43,7 +43,7 @@ BINOP_MNEMONIC_MAPPING: dict[BinaryOpTokenType, type[BinOpInstruction]] = {
     TokenType.STAR: Mul,
 }
 
-UNOP_MNEMONIC_MAPPING: dict[UnaryOpTokenType, type[UnOpInstruction]] = {
+UNOP_MNEMONIC_MAPPING: dict[UnaryOpTokenType, type[UnOpMacroOp]] = {
     TokenType.PLUS: Pos,
     TokenType.MINUS: Neg,
 }
@@ -51,9 +51,9 @@ UNOP_MNEMONIC_MAPPING: dict[UnaryOpTokenType, type[UnOpInstruction]] = {
 
 class BytecodeGenerator:
     def __init__(self, logger: Logger) -> None:
-        self.instructions: list[Instruction] = []
-        self.register_locations: dict[MemoryLocation, RegisterIndex] = {}
-        self.available_registers: list[RegisterIndex] = [
+        self.ops: list[MacroOp] = []
+        self.register_locations: dict[MemoryAddress, RegisterNumber] = {}
+        self.available_registers: list[RegisterNumber] = [
             1,
             2,
             3,
@@ -77,7 +77,7 @@ class BytecodeGenerator:
 
         self.logger = logger
 
-    def allocate_register(self) -> RegisterIndex:
+    def allocate_register(self) -> RegisterNumber:
         if not self.available_registers:
             raise RuntimeError("critical error: no available registers")
 
@@ -85,35 +85,35 @@ class BytecodeGenerator:
 
         return index
 
-    def free_register(self, index: RegisterIndex) -> None:
+    def free_register(self, index: RegisterNumber) -> None:
         if index in self.available_registers:
             raise ValueError(f"cannot free register {index!r}: already freed")
 
         self.available_registers.append(index)
 
-    def free_registers(self, *indexes: RegisterIndex) -> None:
+    def free_registers(self, *indexes: RegisterNumber) -> None:
         for index in indexes:
             self.free_register(index)
 
-    def add_instructions(self, *instructions: Instruction) -> None:
-        self.instructions.extend(instructions)
+    def add_ops(self, *ops: MacroOp) -> None:
+        self.ops.extend(ops)
 
-    def lower_atom_op(self, destination: MemoryLocation, token: Token) -> None:
+    def lower_atom_op(self, destination: MemoryAddress, token: Token) -> None:
         match typing.cast("LiteralTokenType", token.type):
             case TokenType.INTEGER:
                 immediate = int(token.lexeme)
             case TokenType.FLOAT:
                 immediate = float(token.lexeme)
 
-        instruction = StoreImmediate(destination, immediate)
-        self.add_instructions(instruction)
+        op = StoreImmediate(destination, immediate)
+        self.add_ops(op)
 
     def lower_binary_op(
         self,
         kind: BinaryOpTokenType,
-        destination: MemoryLocation,
-        left: MemoryLocation,
-        right: MemoryLocation,
+        destination: MemoryAddress,
+        left: MemoryAddress,
+        right: MemoryAddress,
     ) -> None:
         rdestination = self.allocate_register()
         rleft = self.allocate_register()
@@ -121,7 +121,7 @@ class BytecodeGenerator:
 
         mnemonic = BINOP_MNEMONIC_MAPPING[kind]
 
-        self.add_instructions(
+        self.add_ops(
             Load(rleft, left),
             Load(rright, right),
             mnemonic(rdestination, rleft, rright),
@@ -133,15 +133,15 @@ class BytecodeGenerator:
     def lower_unary_op(
         self,
         kind: UnaryOpTokenType,
-        destination: MemoryLocation,
-        right: MemoryLocation,
+        destination: MemoryAddress,
+        right: MemoryAddress,
     ) -> None:
         rdestination = self.allocate_register()
         rright = self.allocate_register()
 
         mnemonic = UNOP_MNEMONIC_MAPPING[kind]
 
-        self.add_instructions(
+        self.add_ops(
             Load(rright, right),
             mnemonic(rdestination, rright),
             Store(destination, rdestination),
@@ -174,7 +174,7 @@ class BytecodeGenerator:
     def generate(
         self,
         ir: collections.abc.Iterable[IRInstruction],
-    ) -> list[Instruction]:
+    ) -> list[MacroOp]:
         for instruction in ir:
             self.lower(instruction)
 
@@ -185,4 +185,4 @@ class BytecodeGenerator:
         if nonfreed_registers:
             self.logger.warn(self.generate_log_nonfreed_registers(nonfreed_registers))
 
-        return self.instructions
+        return self.ops
