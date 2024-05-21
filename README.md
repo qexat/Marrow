@@ -37,50 +37,51 @@ Marrow programs can also be compiled without running. The `compile` command offe
 ```txt
 marrow/
 ├── cli
-│   ├── __main__.py
-│   └── parser.py
+│   ├── __main__.py
+│   └── parser.py
 ├── compiler
-│   ├── backend
-│   │   ├── generator.py
-│   │   └── macroop.py
-│   ├── common.py
-│   ├── compiler.py
-│   ├── components.py
-│   ├── frontend
-│   │   ├── ast
-│   │   │   └── expr.py
-│   │   ├── parser
-│   │   │   ├── base.py
-│   │   │   ├── parser.py
-│   │   │   ├── precedence.py
-│   │   │   └── subparsers
-│   │   │       ├── atomexpr.py
-│   │   │       ├── nonprefixexpr.py
-│   │   │       └── prefixexpr.py
-│   │   ├── ptsc.py
-│   │   ├── tokenizer.py
-│   │   ├── token.py
-│   │   └── token_type.py
-│   ├── middleend
-│   │   └── SSAIR
-│   │       ├── generator.py
-│   │       ├── instruction.py
-│   │       └── rvalue.py
-│   ├── renderers
-│   │   ├── bytecode.py
-│   │   ├── parse_tree.py
-│   │   ├── rvalue.py
-│   │   └── util.py
-│   └── resources.py
+│   ├── backend
+│   │   ├── generator.py
+│   │   └── macroop.py
+│   ├── common.py
+│   ├── compiler.py
+│   ├── components.py
+│   ├── frontend
+│   │   ├── ast
+│   │   │   └── expr.py
+│   │   ├── parser
+│   │   │   ├── base.py
+│   │   │   ├── parser.py
+│   │   │   ├── precedence.py
+│   │   │   └── subparsers
+│   │   │       ├── atomexpr.py
+│   │   │       ├── nonprefixexpr.py
+│   │   │       └── prefixexpr.py
+│   │   ├── ptsc.py
+│   │   ├── tokenizer.py
+│   │   ├── token.py
+│   │   └── token_type.py
+│   ├── middleend
+│   │   └── SSAIR
+│   │       ├── generator.py
+│   │       ├── instruction.py
+│   │       └── rvalue.py
+│   ├── renderers
+│   │   ├── bytecode.py
+│   │   ├── parse_tree.py
+│   │   ├── rvalue.py
+│   │   └── util.py
+│   └── resources.py
 ├── environment.py
 ├── logger.py
 ├── runtime
-│   ├── constants.py
-│   ├── machine.py
-│   └── rat.py
+│   ├── constants.py
+│   ├── endec.py
+│   ├── machine.py
+│   └── rat.py
 └── types.py
 
-12 directories, 32 files
+12 directories, 33 files
 ```
 
 Command used to generate the tree:
