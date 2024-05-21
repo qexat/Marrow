@@ -5,6 +5,7 @@ import typing
 from marrow.compiler import Compiler
 from marrow.logger import Logger
 from marrow.runtime import Machine
+from marrow.runtime.endec import EnDec
 
 
 class Environment:
@@ -20,15 +21,24 @@ class Environment:
         self.debug: typing.Final = debug
 
         self.logger: typing.Final = Logger(verbose=self.verbose)
+        self.encoder_decoder: typing.Final = EnDec()
         self.compiler: typing.Final = Compiler(
             self.logger,
+            self.encoder_decoder,
             self.source,
             self.verbose,
             self.debug,
         )
-        self.machine: typing.Final = Machine(self.logger)
+        self.machine: typing.Final = Machine(self.logger, self.encoder_decoder)
 
-        self.logger.info(self.make_setup_log("logger", "compiler", "machine"))
+        self.logger.info(
+            self.make_setup_log(
+                "logger",
+                "encoder/decoder",
+                "compiler",
+                "machine",
+            ),
+        )
         self.logger.success("marrow environment initialized")
 
     @classmethod

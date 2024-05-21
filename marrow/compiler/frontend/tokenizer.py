@@ -175,6 +175,8 @@ class Tokenizer:
             char = self.consume()
 
             match char:
+                case "\0":
+                    token_type = TokenType.EOF
                 case " " | "\t" | "\r" | "\n":
                     self.sync_head()
                 case "(":

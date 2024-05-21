@@ -22,12 +22,14 @@ if typing.TYPE_CHECKING:
     from marrow.compiler.common import Expr
     from marrow.compiler.common import IRInstruction
     from marrow.compiler.common import MacroOp
+    from marrow.runtime.endec import EnDec
 
 
 class Compiler:
     def __init__(
         self,
         logger: Logger,
+        encoder_decoder: EnDec,
         file: typing.TextIO,
         verbose: bool,
         debug: bool,
@@ -43,8 +45,12 @@ class Compiler:
         self.parse_tree_renderer: typing.Final = ParseTreeRenderer()
         self.ir_generator: typing.Final = IRGenerator()
         self.rvalue_renderer: typing.Final = RValueRenderer()
+        self.encoder_decoder: typing.Final = encoder_decoder
+        self.bytecode_generator: typing.Final = BytecodeGenerator(
+            self.logger,
+            self.encoder_decoder,
+        )
         self.bytecode_renderer: typing.Final = BytecodeRenderer()
-        self.bytecode_generator: typing.Final = BytecodeGenerator(self.logger)
 
         self.log_preparative_setup(
             "parse tree sanity checker",

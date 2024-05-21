@@ -9,12 +9,12 @@ from result import Err
 from result import Ok
 from result import Result
 
+from marrow.compiler.common import TokenType
 from marrow.compiler.frontend.ast import expr
 from marrow.compiler.frontend.parser import subparsers
 
 if typing.TYPE_CHECKING:
     from marrow.compiler.common import Token
-    from marrow.compiler.common import TokenType
     from marrow.logger import Logger
 
 
@@ -63,7 +63,9 @@ class ParserBase:
     ) -> None: ...
 
     def register_subparser(
-        self, type: TokenType, subparser: subparsers.Subparser,
+        self,
+        type: TokenType,
+        subparser: subparsers.Subparser,
     ) -> None:
         """
         Register a subparser for a given token type.
@@ -223,7 +225,8 @@ class ParserBase:
         """
         expression = self.parse_expr()
 
-        if self.buffer:
+        if self.buffer and self.buffer[0].type is not TokenType.EOF:
+            print(self.buffer)
             self.logger.warn(
                 f"parser buffer still contains {len(self.buffer)} token(s)",
             )

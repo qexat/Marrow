@@ -46,3 +46,33 @@ class Token(typing.NamedTuple):
     lexeme: str
     span: Span
     file: FileProxy
+
+    def get_lines(self) -> list[str]:
+        contents = self.file.contents.getvalue()
+        (_, start), (_, end) = self.get_line_span()
+
+        return [line for line in contents.splitlines(keepends=True)[start - 1 : end]]
+
+    def get_line_span(self) -> tuple[tuple[int, int], tuple[int, int]]:
+        contents = self.file.contents.getvalue()
+
+        start_line_offset = self.span.start
+        end_line_offset = self.span.end
+
+        for index, char in enumerate(reversed(contents[: self.span.start])):
+            if char == "\n":
+                start_line_offset = self.span.start - index
+                break
+
+        for index, char in enumerate(reversed(contents[: self.span.end])):
+            if char == "\n":
+                end_line_offset = self.span.end - index
+                break
+
+        line_start = len(contents[:start_line_offset].splitlines())
+        line_end = len(contents[:end_line_offset].splitlines())
+
+        return (
+            (self.span.start - start_line_offset + 1, line_start + 1),
+            (self.span.end - end_line_offset + 1, line_end + 1),
+        )

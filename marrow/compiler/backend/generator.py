@@ -8,6 +8,7 @@ from marrow.compiler.common import TokenType
 from marrow.compiler.middleend.SSAIR.rvalue import AtomicRValue
 from marrow.compiler.middleend.SSAIR.rvalue import BinaryRValue
 from marrow.compiler.middleend.SSAIR.rvalue import UnaryRValue
+from marrow.types import ImmediateType
 
 from .macroop import Add
 from .macroop import Div
@@ -27,6 +28,7 @@ if typing.TYPE_CHECKING:
     from marrow.compiler.common import Token
     from marrow.compiler.common import UnaryOpTokenType
     from marrow.logger import Logger
+    from marrow.runtime.endec import EnDec
     from marrow.types import MemoryAddress
     from marrow.types import RegisterNumber
 
@@ -50,7 +52,7 @@ UNOP_MNEMONIC_MAPPING: dict[UnaryOpTokenType, type[UnOpMacroOp]] = {
 
 
 class BytecodeGenerator:
-    def __init__(self, logger: Logger) -> None:
+    def __init__(self, logger: Logger, encoder_decoder: EnDec) -> None:
         self.ops: list[MacroOp] = []
         self.register_locations: dict[MemoryAddress, RegisterNumber] = {}
         self.available_registers: list[RegisterNumber] = [
@@ -76,6 +78,7 @@ class BytecodeGenerator:
         self.available_registers.reverse()
 
         self.logger = logger
+        self.encoder_decoder = encoder_decoder
 
     def allocate_register(self) -> RegisterNumber:
         if not self.available_registers:
@@ -101,11 +104,17 @@ class BytecodeGenerator:
     def lower_atom_op(self, destination: MemoryAddress, token: Token) -> None:
         match typing.cast("LiteralTokenType", token.type):
             case TokenType.INTEGER:
-                immediate = int(token.lexeme)
+                # TODO: check if int fits in 64 bits
+                value = int(token.lexeme)
+                type = ImmediateType.INTEGER
             case TokenType.FLOAT:
-                immediate = float(token.lexeme)
+                # TODO: check if float fits in 64 bits
+                value = float(token.lexeme)
+                type = ImmediateType.FLOAT
 
-        op = StoreImmediate(destination, immediate)
+        immediate = self.encoder_decoder.encode_immediate(value)
+
+        op = StoreImmediate(destination, immediate, type)
         self.add_ops(op)
 
     def lower_binary_op(

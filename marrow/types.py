@@ -2,6 +2,7 @@
 Types that are used by both the compiler and the runtime.
 """
 
+import enum
 import typing
 
 type RegisterNumber = typing.Literal[
@@ -28,3 +29,13 @@ Memory address.
 
 ---
 """
+type ByteCount = int
+
+
+class ImmediateType(enum.IntEnum):
+    INTEGER = enum.auto()
+    FLOAT = enum.auto()
+
+
+# floats are actually disabled while we don't have micro-ops
+type RuntimeType = int | float

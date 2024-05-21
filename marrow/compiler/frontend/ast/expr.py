@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import abc
-import enum
 import typing
 
 import attrs
@@ -10,11 +9,6 @@ from ..token import Token
 from ..token_type import BinaryOpTokenType
 from ..token_type import LiteralTokenType
 from ..token_type import UnaryOpTokenType
-
-
-class LiteralScalarType(enum.Enum):
-    INTEGER = enum.auto()
-    FLOAT = enum.auto()
 
 
 class ExprVisitor[R_co](typing.Protocol):

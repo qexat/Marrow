@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import abc
+import io
 import typing
 
 from result import Err
@@ -77,7 +78,56 @@ class GroupingSubparser(AtomSubparser):
 class LiteralScalarSubparser(AtomSubparser):
     """Parser for literal scalar expressions."""
 
+    def _make_float_warning_message(self, token: Token) -> str:
+        buffer = io.StringIO()
+
+        print(
+            "float literals are valid, but floats are not supported by the runtime yet",
+            file=buffer,
+        )
+
+        (row_start, line_start), (row_end, line_end) = token.get_line_span()
+
+        row_start -= 1
+        row_end -= 1
+
+        in_token = False
+
+        # TODO: proper diagnostician
+        for line_no, line in enumerate(token.get_lines(), start=line_start):
+            buffer.write(f"\x1b[2m{line_no:>4} | \x1b[22m")
+
+            if line_no == line_start:
+                buffer.write(line[:row_start])
+                buffer.write("\x1b[1;93m")
+
+                if line_start == line_end:
+                    buffer.write(line[row_start:row_end])
+                    buffer.write("\x1b[22;39m")
+                    buffer.write(line[row_end:])
+                else:
+                    buffer.write(line[row_start:])
+                    in_token = True
+
+            elif line_no == line_end:
+                buffer.write(line[:row_end])
+                buffer.write("\x1b[22;39m")
+                buffer.write(line[row_end:])
+
+            elif in_token:
+                buffer.write("\x1b[1;93m")
+
+        return buffer.getvalue()
+
     def parse(self, parser: ParserBase, token: Token) -> expr.Expr:
+        if token.type is TokenType.FLOAT:
+            row_start, line_start = token.get_line_span()[0]
+
+            parser.logger.warn(
+                self._make_float_warning_message(token),
+                source_path=f"{token.file.name}:{line_start}:{row_start}",
+            )
+
         return expr.LiteralScalarExpr(token, typing.cast(LiteralTokenType, token.type))
 
 

@@ -6,6 +6,7 @@ import typing
 import attrs
 
 if typing.TYPE_CHECKING:
+    from marrow.types import ImmediateType
     from marrow.types import MemoryAddress
     from marrow.types import RegisterNumber
 
@@ -54,7 +55,8 @@ class Store(MacroOpBase):
 @attrs.frozen
 class StoreImmediate(MacroOpBase):
     destination: MemoryAddress
-    immediate: int | float
+    immediate: bytearray
+    type: ImmediateType
 
     def accept[R](self, visitor: MacroOpVisitor[R]) -> R:
         return visitor.visit_store_immediate(self)

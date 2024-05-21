@@ -7,6 +7,8 @@ import time
 import typing
 
 from marrow.compiler.backend.macroop import MacroOpVisitor
+from marrow.types import ImmediateType
+from marrow.types import RuntimeType
 
 from .constants import REGISTER_COUNT
 from .constants import REGISTER_INDEXES
@@ -28,9 +30,11 @@ if typing.TYPE_CHECKING:
     from marrow.compiler.backend.macroop import StoreImmediate
     from marrow.compiler.backend.macroop import Sub
     from marrow.logger import Logger
+    from marrow.types import ByteCount
     from marrow.types import MemoryAddress
     from marrow.types import RegisterNumber
 
+    from .endec import EnDec
     from .rat import Access
 
 
@@ -38,7 +42,7 @@ class Machine(MacroOpVisitor[None]):
     MEMORY_SIZE = 0x10000
     SECTION_SIZE = 0x100
 
-    def __init__(self, logger: Logger) -> None:
+    def __init__(self, logger: Logger, encoder_decoder: EnDec) -> None:
         self.register_file = bytearray(REGISTER_SIZE * REGISTER_COUNT)
         self.bank_mapping: dict[RegisterNumber, int] = {
             index: index * REGISTER_SIZE for index in REGISTER_INDEXES
@@ -46,36 +50,39 @@ class Machine(MacroOpVisitor[None]):
 
         self.memory = bytearray(Machine.MEMORY_SIZE)
 
-        self.old_registers: list[int | float] = [
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-        ]
-        self.old_memory: list[int | float] = [0 for _ in range(self.MEMORY_SIZE)]
-
         self.access_tracking: list[Access] = []
 
         self.logger = logger
+        self.encoder_decoder = encoder_decoder
+
+    @typing.overload
+    def get_register(
+        self,
+        number: RegisterNumber,
+        type: typing.Literal[ImmediateType.FLOAT],
+    ) -> float: ...
+    @typing.overload
+    def get_register(
+        self,
+        number: RegisterNumber,
+        type: typing.Literal[ImmediateType.INTEGER],
+    ) -> int: ...
+
+    def get_register(self, number: RegisterNumber, type: ImmediateType) -> RuntimeType:
+        value = self.get_register_raw(number)
+
+        return self.encoder_decoder.decode_immediate(value, type)
 
     def get_register_raw(self, number: RegisterNumber) -> bytearray:
         self.access_tracking.append(ReadAccess(number))
         index = self.bank_mapping[number]
 
         return self.register_file[index : index + REGISTER_SIZE]
+
+    def set_register(self, number: RegisterNumber, value: RuntimeType) -> None:
+        raw_value = self.encoder_decoder.encode_immediate(value)
+
+        self.set_register_raw(number, raw_value)
 
     def set_register_raw(self, number: RegisterNumber, value: bytearray) -> None:
         self.access_tracking.append(WriteAccess(number, value))
@@ -94,7 +101,7 @@ class Machine(MacroOpVisitor[None]):
     def set_memory_raw(
         self,
         address: MemoryAddress,
-        size: int,
+        size: ByteCount,
         payload: bytearray,
     ) -> None:
         if size <= 0:
@@ -107,86 +114,75 @@ class Machine(MacroOpVisitor[None]):
         ]
 
     def visit_load(self, op: Load) -> None:
-        self.old_registers[op.destination] = self.old_memory[op.source]
-
         self.set_register_raw(
             op.destination,
-            self.get_memory_raw(op.source, REGISTER_SIZE),
+            self.get_memory_raw(op.source * REGISTER_SIZE, REGISTER_SIZE),
         )
 
     def visit_store(self, op: Store) -> None:
-        self.old_memory[op.destination] = self.old_registers[op.source]
-
         self.set_memory_raw(
-            op.destination,
+            op.destination * REGISTER_SIZE,
             REGISTER_SIZE,
             self.get_register_raw(op.source),
         )
 
     def visit_store_immediate(self, op: StoreImmediate) -> None:
-        self.old_memory[op.destination] = op.immediate
-
-        # NOTE: to use the new memory API, immediate values must be sized
+        self.set_memory_raw(op.destination * REGISTER_SIZE, REGISTER_SIZE, op.immediate)
 
     def visit_add(self, op: Add) -> None:
-        self.old_registers[op.destination] = (
-            self.old_registers[op.left] + self.old_registers[op.right]
-        )
+        left = self.get_register(op.left, ImmediateType.INTEGER)
+        right = self.get_register(op.right, ImmediateType.INTEGER)
+
+        self.set_register(op.destination, left + right)
 
     def visit_sub(self, op: Sub) -> None:
-        self.old_registers[op.destination] = (
-            self.old_registers[op.left] - self.old_registers[op.right]
-        )
+        left = self.get_register(op.left, ImmediateType.INTEGER)
+        right = self.get_register(op.right, ImmediateType.INTEGER)
+
+        self.set_register(op.destination, left - right)
 
     def visit_mul(self, op: Mul) -> None:
-        self.old_registers[op.destination] = (
-            self.old_registers[op.left] * self.old_registers[op.right]
-        )
+        left = self.get_register(op.left, ImmediateType.INTEGER)
+        right = self.get_register(op.right, ImmediateType.INTEGER)
+
+        self.set_register(op.destination, left * right)
 
     def visit_div(self, op: Div) -> None:
-        left = self.old_registers[op.left]
-        right = self.old_registers[op.right]
+        left = self.get_register(op.left, ImmediateType.INTEGER)
+        right = self.get_register(op.right, ImmediateType.INTEGER)
 
-        self.old_registers[op.destination] = (
-            left // right
-            if isinstance(left, int) and isinstance(right, int)
-            else left / right
-        )
+        self.set_register(op.destination, left // right)
 
     def visit_mod(self, op: Mod) -> None:
-        self.old_registers[op.destination] = (
-            self.old_registers[op.left] % self.old_registers[op.right]
-        )
+        left = self.get_register(op.left, ImmediateType.INTEGER)
+        right = self.get_register(op.right, ImmediateType.INTEGER)
+
+        self.set_register(op.destination, left % right)
 
     def visit_pos(self, op: Pos) -> None:
-        self.old_registers[op.destination] = +self.old_registers[op.source]
+        self.set_register(
+            op.destination,
+            +self.get_register(op.source, ImmediateType.INTEGER),
+        )
 
     def visit_neg(self, op: Neg) -> None:
-        self.old_registers[op.destination] = -self.old_registers[op.source]
+        self.set_register(
+            op.destination,
+            -self.get_register(op.source, ImmediateType.INTEGER),
+        )
 
     def visit_dump_memory(self, op: DumpMemory) -> None:
-        self.logger.debug(self._generate_dump_old_memory_log(op.section_id))
         self.logger.debug(self._generate_dump_memory_log(op.section_id))
 
-    def _to_hex_representation(self, value: int | float) -> str:
+    def _to_hex_representation(self, value: RuntimeType) -> str:
+        # FIXME: add support for more types
+        # yucky, but we actually don't have floats anyway (for now)
         base_repr = f"{int(value):02x}"
 
         if value == 0:
             return f"\x1b[2m{base_repr}\x1b[22m"
 
         return base_repr
-
-    def _generate_dump_old_memory_log(self, section_id: int) -> str:
-        buffer = io.StringIO()
-        start = section_id * self.SECTION_SIZE
-        section = self.old_memory[start : start + self.SECTION_SIZE]
-
-        print(f"<deprecated> memory dump (section {section_id:#x})", file=buffer)
-
-        for row in itertools.batched(section, 16):
-            print(*map(self._to_hex_representation, row), file=buffer)
-
-        return buffer.getvalue()
 
     def _generate_dump_memory_log(self, section_id: int) -> str:
         buffer = io.StringIO()
