@@ -46,19 +46,19 @@ class Compiler:
         self.ir_generator: typing.Final = IRGenerator()
         self.rvalue_renderer: typing.Final = RValueRenderer()
         self.encoder_decoder: typing.Final = encoder_decoder
-        self.bytecode_generator: typing.Final = MacroOpGenerator(
+        self.macro_op_generator: typing.Final = MacroOpGenerator(
             self.logger,
             self.encoder_decoder,
         )
-        self.bytecode_renderer: typing.Final = MacroOpRenderer()
+        self.macro_op_renderer: typing.Final = MacroOpRenderer()
 
         self.log_preparative_setup(
             "parse tree sanity checker",
             *(("parse tree renderer",) if self.debug else ()),
             "SSA IR generator",
             *(("SSA rvalue renderer",) if self.debug else ()),
-            "bytecode generator",
-            *(("bytecode renderer",) if self.debug else ()),
+            "macro op generator",
+            *(("macro op renderer",) if self.debug else ()),
         )
 
         self.logger.success("compiler initialized")
@@ -107,21 +107,21 @@ class Compiler:
 
         return buffer.getvalue()
 
-    def make_bytecode_ops_log(self, bytecode: list[MacroOp]) -> str:
+    def make_macro_ops_log(self, macro_ops: list[MacroOp]) -> str:
         buffer = io.StringIO()
 
-        for op in bytecode:
-            print(self.bytecode_renderer.render(op), file=buffer)
+        for op in macro_ops:
+            print(self.macro_op_renderer.render(op), file=buffer)
 
         return buffer.getvalue().removesuffix("\n")
 
-    def make_bytecode_generation_log(self, bytecode: list[MacroOp]) -> str:
+    def make_macro_ops_generation_log(self, macro_ops: list[MacroOp]) -> str:
         buffer = io.StringIO()
 
-        print(f"generated {len(bytecode)} ops", file=buffer)
+        print(f"generated {len(macro_ops)} ops", file=buffer)
 
         if self.debug:
-            print(self.make_bytecode_ops_log(bytecode), file=buffer)
+            print(self.make_macro_ops_log(macro_ops), file=buffer)
 
         return buffer.getvalue()
 
@@ -146,15 +146,15 @@ class Compiler:
 
         self.resources.ir = ir
 
-    def generate_bytecode(self) -> None:
-        bytecode = self.bytecode_generator.generate(self.resources.ir)
-        self.logger.info(self.make_bytecode_generation_log(bytecode))
+    def generate_macro_ops(self) -> None:
+        macro_ops = self.macro_op_generator.generate(self.resources.ir)
+        self.logger.info(self.make_macro_ops_generation_log(macro_ops))
 
         if self.debug:
-            bytecode.append(DumpMemory(0))
+            macro_ops.append(DumpMemory(0))
             self.logger.info("injected memory dump op")
 
-        self.resources.bytecode = bytecode
+        self.resources.macro_ops = macro_ops
 
     def compile(self) -> int:
         self.logger.info(f"starting compilation of {self.get_file_name()!r}")
@@ -183,7 +183,7 @@ class Compiler:
         self.logger.success("parse tree seems sane")
 
         self.generate_ssa_ir()
-        self.generate_bytecode()
+        self.generate_macro_ops()
 
         time_end = time.perf_counter()
 

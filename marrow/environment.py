@@ -52,7 +52,7 @@ class Environment:
     def make_setup_log(self, *names: str) -> str:
         buffer = io.StringIO()
 
-        print("setup components", file=buffer)
+        print("set up components", file=buffer)
 
         for name in names:
             print(f"• {name}", file=buffer)
@@ -68,7 +68,7 @@ class Environment:
         if exit_code > 0:
             return exit_code
 
-        self.machine.execute(self.compiler.resources.bytecode, debug=self.debug)
+        self.machine.execute(self.compiler.resources.macro_ops, debug=self.debug)
         self.logger.info("execution finished")
 
         return 0

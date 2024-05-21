@@ -170,7 +170,7 @@ class MacroOpGenerator:
         buffer = io.StringIO()
 
         print(
-            f"bytecode generation has finished, but {len(non_freed_registers)} register(s) are still allocated",
+            f"macro op generation has finished, but {len(non_freed_registers)} register(s) are still allocated",
             file=buffer,
         )
 

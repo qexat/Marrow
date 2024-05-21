@@ -20,4 +20,4 @@ class CompilerResources:
     tokens: collections.abc.Iterator[Token] = attrs.field(factory=lambda: iter(()))
     parse_tree: Expr = attrs.field(factory=lambda: BlockExpr([]))
     ir: list[IRInstruction] = attrs.field(factory=list)
-    bytecode: list[MacroOp] = attrs.field(factory=list)
+    macro_ops: list[MacroOp] = attrs.field(factory=list)
