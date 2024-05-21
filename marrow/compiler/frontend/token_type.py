@@ -30,7 +30,11 @@ type LiteralTokenType = typing.Literal[TokenType.FLOAT, TokenType.INTEGER]
 
 type AtomTokenType = KeywordTokenType | LiteralTokenType
 type BinaryOpTokenType = typing.Literal[
-    TokenType.MINUS, TokenType.PERCENT, TokenType.PLUS, TokenType.SLASH, TokenType.STAR,
+    TokenType.MINUS,
+    TokenType.PERCENT,
+    TokenType.PLUS,
+    TokenType.SLASH,
+    TokenType.STAR,
 ]
 type PunctuationTokenType = typing.Literal[TokenType.SEMICOLON]
 type UnaryOpTokenType = typing.Literal[TokenType.MINUS, TokenType.PLUS]

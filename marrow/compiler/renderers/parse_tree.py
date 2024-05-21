@@ -18,7 +18,10 @@ class ParseTreeRenderer(expr.ExprVisitor[str]):
     def render_node_attribute(self, name: str, expression: expr.Expr, /) -> str: ...
     @typing.overload
     def render_node_attribute(
-        self, name: str, expression_list: list[expr.Expr], /,
+        self,
+        name: str,
+        expression_list: list[expr.Expr],
+        /,
     ) -> str: ...
     @typing.overload
     def render_node_attribute(self, name: str, string: str, /) -> str: ...

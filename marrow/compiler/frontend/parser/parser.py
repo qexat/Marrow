@@ -28,17 +28,22 @@ class Parser(ParserBase):
         self.register_subparser(TokenType.MINUS, UnaryPrefixSubparser())
 
         self.register_subparser(
-            TokenType.PLUS, BinaryNonprefixSubparser(Precedence.ADDITION),
+            TokenType.PLUS,
+            BinaryNonprefixSubparser(Precedence.ADDITION),
         )
         self.register_subparser(
-            TokenType.MINUS, BinaryNonprefixSubparser(Precedence.SUBTRACTION),
+            TokenType.MINUS,
+            BinaryNonprefixSubparser(Precedence.SUBTRACTION),
         )
         self.register_subparser(
-            TokenType.STAR, BinaryNonprefixSubparser(Precedence.MULTIPLICATION),
+            TokenType.STAR,
+            BinaryNonprefixSubparser(Precedence.MULTIPLICATION),
         )
         self.register_subparser(
-            TokenType.SLASH, BinaryNonprefixSubparser(Precedence.DIVISION),
+            TokenType.SLASH,
+            BinaryNonprefixSubparser(Precedence.DIVISION),
         )
         self.register_subparser(
-            TokenType.PERCENT, BinaryNonprefixSubparser(Precedence.REMAINDER),
+            TokenType.PERCENT,
+            BinaryNonprefixSubparser(Precedence.REMAINDER),
         )
