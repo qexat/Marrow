@@ -6,7 +6,7 @@ import itertools
 import time
 import typing
 
-from marrow.compiler.backend.macroop import MacroOpVisitor
+from marrow.compiler.backend.macro.ops import MacroOpVisitor
 from marrow.types import ImmediateType
 from marrow.types import RuntimeType
 
@@ -17,18 +17,18 @@ from .rat import ReadAccess
 from .rat import WriteAccess
 
 if typing.TYPE_CHECKING:
-    from marrow.compiler.backend.macroop import Add
-    from marrow.compiler.backend.macroop import Div
-    from marrow.compiler.backend.macroop import DumpMemory
-    from marrow.compiler.backend.macroop import Load
-    from marrow.compiler.backend.macroop import MacroOp
-    from marrow.compiler.backend.macroop import Mod
-    from marrow.compiler.backend.macroop import Mul
-    from marrow.compiler.backend.macroop import Neg
-    from marrow.compiler.backend.macroop import Pos
-    from marrow.compiler.backend.macroop import Store
-    from marrow.compiler.backend.macroop import StoreImmediate
-    from marrow.compiler.backend.macroop import Sub
+    from marrow.compiler.backend.macro.ops import Add
+    from marrow.compiler.backend.macro.ops import Div
+    from marrow.compiler.backend.macro.ops import DumpMemory
+    from marrow.compiler.backend.macro.ops import Load
+    from marrow.compiler.backend.macro.ops import MacroOp
+    from marrow.compiler.backend.macro.ops import Mod
+    from marrow.compiler.backend.macro.ops import Mul
+    from marrow.compiler.backend.macro.ops import Neg
+    from marrow.compiler.backend.macro.ops import Pos
+    from marrow.compiler.backend.macro.ops import Store
+    from marrow.compiler.backend.macro.ops import StoreImmediate
+    from marrow.compiler.backend.macro.ops import Sub
     from marrow.logger import Logger
     from marrow.types import ByteCount
     from marrow.types import MemoryAddress

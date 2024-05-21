@@ -41,8 +41,9 @@ marrow/
 │   └── parser.py
 ├── compiler
 │   ├── backend
-│   │   ├── generator.py
-│   │   └── macroop.py
+│   │   └── macro
+│   │       ├── generator.py
+│   │       └── ops.py
 │   ├── common.py
 │   ├── compiler.py
 │   ├── components.py
@@ -67,7 +68,7 @@ marrow/
 │   │       ├── instruction.py
 │   │       └── rvalue.py
 │   ├── renderers
-│   │   ├── bytecode.py
+│   │   ├── macroop.py
 │   │   ├── parse_tree.py
 │   │   ├── rvalue.py
 │   │   └── util.py
@@ -81,7 +82,7 @@ marrow/
 │   └── rat.py
 └── types.py
 
-12 directories, 33 files
+13 directories, 33 files
 ```
 
 Command used to generate the tree:

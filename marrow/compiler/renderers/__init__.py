@@ -1,9 +1,9 @@
-from .bytecode import BytecodeRenderer
+from .macroop import MacroOpRenderer
 from .parse_tree import ParseTreeRenderer
 from .rvalue import RValueRenderer
 
 __all__ = [
-    "BytecodeRenderer",
+    "MacroOpRenderer",
     "ParseTreeRenderer",
     "RValueRenderer",
 ]

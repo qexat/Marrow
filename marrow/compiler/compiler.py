@@ -4,13 +4,13 @@ import io
 import time
 import typing
 
-from marrow.compiler.backend.macroop import DumpMemory
-from marrow.compiler.components import BytecodeGenerator
+from marrow.compiler.backend.macro.ops import DumpMemory
 from marrow.compiler.components import IRGenerator
+from marrow.compiler.components import MacroOpGenerator
 from marrow.compiler.components import Parser
 from marrow.compiler.components import ParseTreeSanityChecker
 from marrow.compiler.components import Tokenizer
-from marrow.compiler.renderers import BytecodeRenderer
+from marrow.compiler.renderers import MacroOpRenderer
 from marrow.compiler.renderers import ParseTreeRenderer
 from marrow.compiler.renderers import RValueRenderer
 from marrow.compiler.renderers.util import render_memory_location
@@ -46,11 +46,11 @@ class Compiler:
         self.ir_generator: typing.Final = IRGenerator()
         self.rvalue_renderer: typing.Final = RValueRenderer()
         self.encoder_decoder: typing.Final = encoder_decoder
-        self.bytecode_generator: typing.Final = BytecodeGenerator(
+        self.bytecode_generator: typing.Final = MacroOpGenerator(
             self.logger,
             self.encoder_decoder,
         )
-        self.bytecode_renderer: typing.Final = BytecodeRenderer()
+        self.bytecode_renderer: typing.Final = MacroOpRenderer()
 
         self.log_preparative_setup(
             "parse tree sanity checker",

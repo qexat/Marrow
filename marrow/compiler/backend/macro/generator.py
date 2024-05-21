@@ -10,16 +10,16 @@ from marrow.compiler.middleend.SSAIR.rvalue import BinaryRValue
 from marrow.compiler.middleend.SSAIR.rvalue import UnaryRValue
 from marrow.types import ImmediateType
 
-from .macroop import Add
-from .macroop import Div
-from .macroop import Load
-from .macroop import Mod
-from .macroop import Mul
-from .macroop import Neg
-from .macroop import Pos
-from .macroop import Store
-from .macroop import StoreImmediate
-from .macroop import Sub
+from .ops import Add
+from .ops import Div
+from .ops import Load
+from .ops import Mod
+from .ops import Mul
+from .ops import Neg
+from .ops import Pos
+from .ops import Store
+from .ops import StoreImmediate
+from .ops import Sub
 
 if typing.TYPE_CHECKING:
     from marrow.compiler.common import BinaryOpTokenType
@@ -32,9 +32,9 @@ if typing.TYPE_CHECKING:
     from marrow.types import MemoryAddress
     from marrow.types import RegisterNumber
 
-    from .macroop import BinOpMacroOp
-    from .macroop import MacroOp
-    from .macroop import UnOpMacroOp
+    from .ops import BinOpMacroOp
+    from .ops import MacroOp
+    from .ops import UnOpMacroOp
 
 
 BINOP_MNEMONIC_MAPPING: dict[BinaryOpTokenType, type[BinOpMacroOp]] = {
@@ -51,10 +51,9 @@ UNOP_MNEMONIC_MAPPING: dict[UnaryOpTokenType, type[UnOpMacroOp]] = {
 }
 
 
-class BytecodeGenerator:
+class MacroOpGenerator:
     def __init__(self, logger: Logger, encoder_decoder: EnDec) -> None:
         self.ops: list[MacroOp] = []
-        self.register_locations: dict[MemoryAddress, RegisterNumber] = {}
         self.available_registers: list[RegisterNumber] = [
             1,
             2,

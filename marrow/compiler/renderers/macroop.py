@@ -2,24 +2,24 @@ from __future__ import annotations
 
 import typing
 
-from marrow.compiler.backend.macroop import MacroOpVisitor
+from marrow.compiler.backend.macro.ops import MacroOpVisitor
 
 if typing.TYPE_CHECKING:
-    from marrow.compiler.backend.macroop import Add
-    from marrow.compiler.backend.macroop import Div
-    from marrow.compiler.backend.macroop import DumpMemory
-    from marrow.compiler.backend.macroop import Load
-    from marrow.compiler.backend.macroop import MacroOp
-    from marrow.compiler.backend.macroop import Mod
-    from marrow.compiler.backend.macroop import Mul
-    from marrow.compiler.backend.macroop import Neg
-    from marrow.compiler.backend.macroop import Pos
-    from marrow.compiler.backend.macroop import Store
-    from marrow.compiler.backend.macroop import StoreImmediate
-    from marrow.compiler.backend.macroop import Sub
+    from marrow.compiler.backend.macro.ops import Add
+    from marrow.compiler.backend.macro.ops import Div
+    from marrow.compiler.backend.macro.ops import DumpMemory
+    from marrow.compiler.backend.macro.ops import Load
+    from marrow.compiler.backend.macro.ops import MacroOp
+    from marrow.compiler.backend.macro.ops import Mod
+    from marrow.compiler.backend.macro.ops import Mul
+    from marrow.compiler.backend.macro.ops import Neg
+    from marrow.compiler.backend.macro.ops import Pos
+    from marrow.compiler.backend.macro.ops import Store
+    from marrow.compiler.backend.macro.ops import StoreImmediate
+    from marrow.compiler.backend.macro.ops import Sub
 
 
-class BytecodeRenderer(MacroOpVisitor[str]):
+class MacroOpRenderer(MacroOpVisitor[str]):
     def visit_add(self, op: Add) -> str:
         return f"\x1b[1m{'ADD':<16}\x1b[22m {op.destination:>#16x} {op.left:>#16x} {op.right:>#16x}"
 
