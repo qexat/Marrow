@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import abc
-import enum
 import typing
 
 import attrs
@@ -10,14 +9,6 @@ if typing.TYPE_CHECKING:
     from marrow.types import ImmediateType
     from marrow.types import MemoryAddress
     from marrow.types import RegisterNumber
-
-
-class ArithmeticFunc(enum.IntEnum):
-    ADD = enum.auto()
-    SUB = enum.auto()
-    MUL = enum.auto()
-    DIV = enum.auto()
-    MOD = enum.auto()
 
 
 class MacroOpVisitor[R_co](typing.Protocol):
