@@ -3,9 +3,9 @@ import io
 import typing
 
 from marrow.compiler import Compiler
+from marrow.endec import EnDec
 from marrow.logger import Logger
 from marrow.runtime import Machine
-from marrow.runtime.endec import EnDec
 
 
 class Environment:

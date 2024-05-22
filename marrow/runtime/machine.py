@@ -29,12 +29,12 @@ if typing.TYPE_CHECKING:
     from marrow.compiler.backend.macro.ops import Store
     from marrow.compiler.backend.macro.ops import StoreImmediate
     from marrow.compiler.backend.macro.ops import Sub
+    from marrow.endec import EnDec
     from marrow.logger import Logger
     from marrow.types import ByteCount
     from marrow.types import MemoryAddress
     from marrow.types import RegisterNumber
 
-    from .endec import EnDec
     from .rat import Access
 
 

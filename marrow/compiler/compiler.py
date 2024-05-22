@@ -22,7 +22,7 @@ if typing.TYPE_CHECKING:
     from marrow.compiler.common import Expr
     from marrow.compiler.common import IRInstruction
     from marrow.compiler.common import MacroOp
-    from marrow.runtime.endec import EnDec
+    from marrow.endec import EnDec
 
 
 class Compiler:

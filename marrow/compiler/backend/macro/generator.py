@@ -27,8 +27,8 @@ if typing.TYPE_CHECKING:
     from marrow.compiler.common import LiteralTokenType
     from marrow.compiler.common import Token
     from marrow.compiler.common import UnaryOpTokenType
+    from marrow.endec import EnDec
     from marrow.logger import Logger
-    from marrow.runtime.endec import EnDec
     from marrow.types import MemoryAddress
     from marrow.types import RegisterNumber
 
