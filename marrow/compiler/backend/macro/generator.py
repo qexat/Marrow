@@ -4,22 +4,19 @@ import collections.abc
 import io
 import typing
 
+from marrow.compiler.backend.funcs import BinaryArithFunc
+from marrow.compiler.backend.funcs import UnaryArithFunc
 from marrow.compiler.common import TokenType
 from marrow.compiler.middleend.SSAIR.rvalue import AtomRValue
 from marrow.compiler.middleend.SSAIR.rvalue import BinaryRValue
 from marrow.compiler.middleend.SSAIR.rvalue import UnaryRValue
 from marrow.types import ImmediateType
 
-from .ops import Add
-from .ops import Div
+from .ops import BinaryArith
 from .ops import Load
-from .ops import Mod
-from .ops import Mul
-from .ops import Neg
-from .ops import Pos
 from .ops import Store
 from .ops import StoreImmediate
-from .ops import Sub
+from .ops import UnaryArith
 
 if typing.TYPE_CHECKING:
     from marrow.compiler.common import BinaryOpTokenType
@@ -32,22 +29,20 @@ if typing.TYPE_CHECKING:
     from marrow.types import MemoryAddress
     from marrow.types import RegisterNumber
 
-    from .ops import BinOpMacroOp
     from .ops import MacroOp
-    from .ops import UnOpMacroOp
 
 
-BINOP_MNEMONIC_MAPPING: dict[BinaryOpTokenType, type[BinOpMacroOp]] = {
-    TokenType.MINUS: Sub,
-    TokenType.PERCENT: Mod,
-    TokenType.PLUS: Add,
-    TokenType.SLASH: Div,
-    TokenType.STAR: Mul,
+BINOP_FUNC_MAPPING: dict[BinaryOpTokenType, BinaryArithFunc] = {
+    TokenType.MINUS: BinaryArithFunc.SUB,
+    TokenType.PERCENT: BinaryArithFunc.MOD,
+    TokenType.PLUS: BinaryArithFunc.ADD,
+    TokenType.SLASH: BinaryArithFunc.DIV,
+    TokenType.STAR: BinaryArithFunc.MUL,
 }
 
-UNOP_MNEMONIC_MAPPING: dict[UnaryOpTokenType, type[UnOpMacroOp]] = {
-    TokenType.PLUS: Pos,
-    TokenType.MINUS: Neg,
+UNOP_FUNC_MAPPING: dict[UnaryOpTokenType, UnaryArithFunc] = {
+    TokenType.MINUS: UnaryArithFunc.NEG,
+    TokenType.PLUS: UnaryArithFunc.POS,
 }
 
 
@@ -127,7 +122,7 @@ class MacroOpGenerator:
         rleft = self.allocate_register()
         rright = self.allocate_register()
 
-        mnemonic = BINOP_MNEMONIC_MAPPING[kind]
+        func = BINOP_FUNC_MAPPING[kind]
 
         self.add_ops(
             Load(rleft, left),
@@ -135,7 +130,7 @@ class MacroOpGenerator:
             # NOTE: in the future, the SSA IR will be produced from a typed AST
             # so we won't have to hardcode the binop type, we will just grab
             # the data from the SSA IR instruction
-            mnemonic(rdestination, ImmediateType.INTEGER, rleft, rright),
+            BinaryArith(func, ImmediateType.INTEGER, rdestination, rleft, rright),
             Store(destination, rdestination),
         )
 
@@ -150,14 +145,14 @@ class MacroOpGenerator:
         rdestination = self.allocate_register()
         rright = self.allocate_register()
 
-        mnemonic = UNOP_MNEMONIC_MAPPING[kind]
+        func = UNOP_FUNC_MAPPING[kind]
 
         self.add_ops(
             Load(rright, right),
             # NOTE: in the future, the SSA IR will be produced from a typed AST
             # so we won't have to hardcode the binop type, we will just grab
             # the data from the SSA IR instruction
-            mnemonic(rdestination, ImmediateType.INTEGER, rright),
+            UnaryArith(func, ImmediateType.INTEGER, rdestination, rright),
             Store(destination, rdestination),
         )
 

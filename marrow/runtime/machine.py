@@ -3,10 +3,14 @@ from __future__ import annotations
 import collections.abc
 import io
 import itertools
+import operator
 import time
 import typing
 
+from marrow.compiler.backend.funcs import BinaryArithFunc
+from marrow.compiler.backend.funcs import UnaryArithFunc
 from marrow.compiler.backend.macro.ops import MacroOpVisitor
+from marrow.compiler.backend.macro.ops import UnaryArith
 from marrow.types import ImmediateType
 from marrow.types import RuntimeType
 
@@ -17,18 +21,12 @@ from .rat import ReadAccess
 from .rat import WriteAccess
 
 if typing.TYPE_CHECKING:
-    from marrow.compiler.backend.macro.ops import Add
-    from marrow.compiler.backend.macro.ops import Div
+    from marrow.compiler.backend.macro.ops import BinaryArith
     from marrow.compiler.backend.macro.ops import DumpMemory
     from marrow.compiler.backend.macro.ops import Load
     from marrow.compiler.backend.macro.ops import MacroOp
-    from marrow.compiler.backend.macro.ops import Mod
-    from marrow.compiler.backend.macro.ops import Mul
-    from marrow.compiler.backend.macro.ops import Neg
-    from marrow.compiler.backend.macro.ops import Pos
     from marrow.compiler.backend.macro.ops import Store
     from marrow.compiler.backend.macro.ops import StoreImmediate
-    from marrow.compiler.backend.macro.ops import Sub
     from marrow.endec import EnDec
     from marrow.logger import Logger
     from marrow.types import ByteCount
@@ -36,6 +34,20 @@ if typing.TYPE_CHECKING:
     from marrow.types import RegisterNumber
 
     from .rat import Access
+
+
+BINOP_IMPL_MAPPING = {
+    BinaryArithFunc.ADD: operator.add,
+    BinaryArithFunc.DIV: operator.floordiv,
+    BinaryArithFunc.MOD: operator.mod,
+    BinaryArithFunc.MUL: operator.mul,
+    BinaryArithFunc.SUB: operator.sub,
+}
+
+UNOP_IMPL_MAPPING = {
+    UnaryArithFunc.NEG: operator.neg,
+    UnaryArithFunc.POS: operator.pos,
+}
 
 
 class Machine(MacroOpVisitor[None]):
@@ -135,47 +147,18 @@ class Machine(MacroOpVisitor[None]):
     def visit_store_immediate(self, op: StoreImmediate) -> None:
         self.set_memory_raw(op.destination * REGISTER_SIZE, REGISTER_SIZE, op.immediate)
 
-    def visit_add(self, op: Add) -> None:
+    def visit_binary_arith(self, op: BinaryArith) -> None:
         left = self.get_register(op.left, op.type)
         right = self.get_register(op.right, op.type)
 
-        self.set_register(op.destination, left + right)
+        impl = BINOP_IMPL_MAPPING[op.func]
 
-    def visit_sub(self, op: Sub) -> None:
-        left = self.get_register(op.left, op.type)
-        right = self.get_register(op.right, op.type)
+        self.set_register(op.destination, impl(left, right))
 
-        self.set_register(op.destination, left - right)
+    def visit_unary_arith(self, op: UnaryArith) -> None:
+        impl = UNOP_IMPL_MAPPING[op.func]
 
-    def visit_mul(self, op: Mul) -> None:
-        left = self.get_register(op.left, op.type)
-        right = self.get_register(op.right, op.type)
-
-        self.set_register(op.destination, left * right)
-
-    def visit_div(self, op: Div) -> None:
-        left = self.get_register(op.left, op.type)
-        right = self.get_register(op.right, op.type)
-
-        self.set_register(op.destination, left // right)
-
-    def visit_mod(self, op: Mod) -> None:
-        left = self.get_register(op.left, op.type)
-        right = self.get_register(op.right, op.type)
-
-        self.set_register(op.destination, left % right)
-
-    def visit_pos(self, op: Pos) -> None:
-        self.set_register(
-            op.destination,
-            +self.get_register(op.source, op.type),
-        )
-
-    def visit_neg(self, op: Neg) -> None:
-        self.set_register(
-            op.destination,
-            -self.get_register(op.source, op.type),
-        )
+        self.set_register(op.destination, impl(self.get_register(op.source, op.type)))
 
     def visit_dump_memory(self, op: DumpMemory) -> None:
         self.logger.debug(self._generate_dump_memory_log(op.section_id))

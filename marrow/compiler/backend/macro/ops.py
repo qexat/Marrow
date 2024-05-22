@@ -10,20 +10,17 @@ if typing.TYPE_CHECKING:
     from marrow.types import MemoryAddress
     from marrow.types import RegisterNumber
 
+    from ..funcs import BinaryArithFunc
+    from ..funcs import UnaryArithFunc
+
 
 class MacroOpVisitor[R_co](typing.Protocol):
     def visit_load(self, op: Load) -> R_co: ...
     def visit_store(self, op: Store) -> R_co: ...
     def visit_store_immediate(self, op: StoreImmediate) -> R_co: ...
 
-    def visit_add(self, op: Add) -> R_co: ...
-    def visit_sub(self, op: Sub) -> R_co: ...
-    def visit_mul(self, op: Mul) -> R_co: ...
-    def visit_div(self, op: Div) -> R_co: ...
-    def visit_mod(self, op: Mod) -> R_co: ...
-
-    def visit_pos(self, op: Pos) -> R_co: ...
-    def visit_neg(self, op: Neg) -> R_co: ...
+    def visit_binary_arith(self, op: BinaryArith) -> R_co: ...
+    def visit_unary_arith(self, op: UnaryArith) -> R_co: ...
 
     def visit_dump_memory(self, op: DumpMemory) -> R_co: ...
 
@@ -63,78 +60,26 @@ class StoreImmediate(MacroOpBase):
 
 
 @attrs.frozen
-class Add(MacroOpBase):
-    destination: RegisterNumber
+class BinaryArith(MacroOpBase):
+    func: BinaryArithFunc
     type: ImmediateType
+    destination: RegisterNumber
     left: RegisterNumber
     right: RegisterNumber
 
     def accept[R](self, visitor: MacroOpVisitor[R]) -> R:
-        return visitor.visit_add(self)
+        return visitor.visit_binary_arith(self)
 
 
 @attrs.frozen
-class Sub(MacroOpBase):
-    destination: RegisterNumber
+class UnaryArith(MacroOpBase):
+    func: UnaryArithFunc
     type: ImmediateType
-    left: RegisterNumber
-    right: RegisterNumber
-
-    def accept[R](self, visitor: MacroOpVisitor[R]) -> R:
-        return visitor.visit_sub(self)
-
-
-@attrs.frozen
-class Mul(MacroOpBase):
     destination: RegisterNumber
-    type: ImmediateType
-    left: RegisterNumber
-    right: RegisterNumber
-
-    def accept[R](self, visitor: MacroOpVisitor[R]) -> R:
-        return visitor.visit_mul(self)
-
-
-@attrs.frozen
-class Div(MacroOpBase):
-    destination: RegisterNumber
-    type: ImmediateType
-    left: RegisterNumber
-    right: RegisterNumber
-
-    def accept[R](self, visitor: MacroOpVisitor[R]) -> R:
-        return visitor.visit_div(self)
-
-
-@attrs.frozen
-class Mod(MacroOpBase):
-    destination: RegisterNumber
-    type: ImmediateType
-    left: RegisterNumber
-    right: RegisterNumber
-
-    def accept[R](self, visitor: MacroOpVisitor[R]) -> R:
-        return visitor.visit_mod(self)
-
-
-@attrs.frozen
-class Pos(MacroOpBase):
-    destination: RegisterNumber
-    type: ImmediateType
     source: RegisterNumber
 
     def accept[R](self, visitor: MacroOpVisitor[R]) -> R:
-        return visitor.visit_pos(self)
-
-
-@attrs.frozen
-class Neg(MacroOpBase):
-    destination: RegisterNumber
-    type: ImmediateType
-    source: RegisterNumber
-
-    def accept[R](self, visitor: MacroOpVisitor[R]) -> R:
-        return visitor.visit_neg(self)
+        return visitor.visit_unary_arith(self)
 
 
 @attrs.frozen
@@ -146,7 +91,5 @@ class DumpMemory(MacroOpBase):
 
 
 type LoadStoreMacroOp = Load | Store | StoreImmediate
-type BinOpMacroOp = Add | Sub | Mul | Div | Mod
-type UnOpMacroOp = Pos | Neg
 type DebugMacroOp = DumpMemory
-type MacroOp = LoadStoreMacroOp | BinOpMacroOp | UnOpMacroOp | DebugMacroOp
+type MacroOp = LoadStoreMacroOp | BinaryArith | UnaryArith | DebugMacroOp
