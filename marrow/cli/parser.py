@@ -44,7 +44,8 @@ class CLIParser:
         parent = argparse.ArgumentParser(add_help=False)
         parent.add_argument(
             "--verbose",
-            "-vb",
+            "--wordy",
+            "-w",
             action="store_true",
             help="show in detail what is going on",
         )
