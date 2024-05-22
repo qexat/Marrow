@@ -1,6 +1,7 @@
 # pyright: reportUnusedCallResult = false
 
 import argparse
+import io
 import tempfile
 import typing
 
@@ -70,6 +71,15 @@ class CLIParser:
 
         return parent
 
+    def get_help_parser(self) -> argparse.ArgumentParser:
+        parser = self.subparsers.add_parser(
+            "help",
+            help="get help about marrow",
+            add_help=False,
+        )
+
+        return parser
+
     def get_compile_parser(self) -> argparse.ArgumentParser:
         parser = self.subparsers.add_parser(
             "compile",
@@ -88,12 +98,16 @@ class CLIParser:
 
         return parser
 
-    def get_parser(self) -> argparse.ArgumentParser:
+    def get_main_parser(self) -> argparse.ArgumentParser:
         return self._parser
 
+    def get_base_namespace(self) -> argparse.Namespace:
+        return argparse.Namespace(source=io.StringIO(), verbose=False, debug=False)
+
     def parse_args(self, args: list[str] | None = None) -> argparse.Namespace:
-        self.get_parser()
+        self.get_main_parser()
+        self.get_help_parser()
         self.get_compile_parser()
         self.get_run_parser()
 
-        return self._parser.parse_args(args)
+        return self._parser.parse_args(args, self.get_base_namespace())

@@ -6,7 +6,8 @@ from .parser import CLIParser
 
 
 def main() -> int:
-    namespace = CLIParser().parse_args()
+    parser = CLIParser()
+    namespace = parser.parse_args()
     environment = Environment.from_args(namespace)
 
     match namespace.command:
@@ -14,6 +15,9 @@ def main() -> int:
             return environment.compile()
         case "run":
             return environment.run()
+        case "help":
+            parser.get_main_parser().print_help()
+            return 0
         case _:
             environment.logger.error(f"unexpected command {namespace.command!r}")
             return 1
