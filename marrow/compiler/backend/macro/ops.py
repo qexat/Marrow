@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import abc
+import enum
 import typing
 
 import attrs
@@ -9,6 +10,14 @@ if typing.TYPE_CHECKING:
     from marrow.types import ImmediateType
     from marrow.types import MemoryAddress
     from marrow.types import RegisterNumber
+
+
+class ArithmeticFunc(enum.IntEnum):
+    ADD = enum.auto()
+    SUB = enum.auto()
+    MUL = enum.auto()
+    DIV = enum.auto()
+    MOD = enum.auto()
 
 
 class MacroOpVisitor[R_co](typing.Protocol):
@@ -55,8 +64,8 @@ class Store(MacroOpBase):
 @attrs.frozen
 class StoreImmediate(MacroOpBase):
     destination: MemoryAddress
-    immediate: bytearray
     type: ImmediateType
+    immediate: bytearray
 
     def accept[R](self, visitor: MacroOpVisitor[R]) -> R:
         return visitor.visit_store_immediate(self)
@@ -65,6 +74,7 @@ class StoreImmediate(MacroOpBase):
 @attrs.frozen
 class Add(MacroOpBase):
     destination: RegisterNumber
+    type: ImmediateType
     left: RegisterNumber
     right: RegisterNumber
 
@@ -75,6 +85,7 @@ class Add(MacroOpBase):
 @attrs.frozen
 class Sub(MacroOpBase):
     destination: RegisterNumber
+    type: ImmediateType
     left: RegisterNumber
     right: RegisterNumber
 
@@ -85,6 +96,7 @@ class Sub(MacroOpBase):
 @attrs.frozen
 class Mul(MacroOpBase):
     destination: RegisterNumber
+    type: ImmediateType
     left: RegisterNumber
     right: RegisterNumber
 
@@ -95,6 +107,7 @@ class Mul(MacroOpBase):
 @attrs.frozen
 class Div(MacroOpBase):
     destination: RegisterNumber
+    type: ImmediateType
     left: RegisterNumber
     right: RegisterNumber
 
@@ -105,6 +118,7 @@ class Div(MacroOpBase):
 @attrs.frozen
 class Mod(MacroOpBase):
     destination: RegisterNumber
+    type: ImmediateType
     left: RegisterNumber
     right: RegisterNumber
 
@@ -115,6 +129,7 @@ class Mod(MacroOpBase):
 @attrs.frozen
 class Pos(MacroOpBase):
     destination: RegisterNumber
+    type: ImmediateType
     source: RegisterNumber
 
     def accept[R](self, visitor: MacroOpVisitor[R]) -> R:
@@ -124,6 +139,7 @@ class Pos(MacroOpBase):
 @attrs.frozen
 class Neg(MacroOpBase):
     destination: RegisterNumber
+    type: ImmediateType
     source: RegisterNumber
 
     def accept[R](self, visitor: MacroOpVisitor[R]) -> R:

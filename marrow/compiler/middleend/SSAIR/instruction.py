@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import typing
 
-from .rvalue import AtomicRValue
+from .rvalue import AtomRValue
 from .rvalue import BinaryRValue
 from .rvalue import UnaryRValue
 
@@ -18,7 +18,7 @@ class IRInstruction(typing.NamedTuple):
 
     def is_dependent_on(self, location: MemoryAddress) -> bool:
         match self.rvalue:
-            case AtomicRValue(_):
+            case AtomRValue(_):
                 return False
             case BinaryRValue(_, left, right):
                 return location == left or location == right

@@ -5,7 +5,7 @@ import io
 import typing
 
 from marrow.compiler.common import TokenType
-from marrow.compiler.middleend.SSAIR.rvalue import AtomicRValue
+from marrow.compiler.middleend.SSAIR.rvalue import AtomRValue
 from marrow.compiler.middleend.SSAIR.rvalue import BinaryRValue
 from marrow.compiler.middleend.SSAIR.rvalue import UnaryRValue
 from marrow.types import ImmediateType
@@ -113,7 +113,7 @@ class MacroOpGenerator:
 
         immediate = self.encoder_decoder.encode_immediate(value)
 
-        op = StoreImmediate(destination, immediate, type)
+        op = StoreImmediate(destination, type, immediate)
         self.add_ops(op)
 
     def lower_binary_op(
@@ -132,7 +132,10 @@ class MacroOpGenerator:
         self.add_ops(
             Load(rleft, left),
             Load(rright, right),
-            mnemonic(rdestination, rleft, rright),
+            # NOTE: in the future, the SSA IR will be produced from a typed AST
+            # so we won't have to hardcode the binop type, we will just grab
+            # the data from the SSA IR instruction
+            mnemonic(rdestination, ImmediateType.INTEGER, rleft, rright),
             Store(destination, rdestination),
         )
 
@@ -151,7 +154,10 @@ class MacroOpGenerator:
 
         self.add_ops(
             Load(rright, right),
-            mnemonic(rdestination, rright),
+            # NOTE: in the future, the SSA IR will be produced from a typed AST
+            # so we won't have to hardcode the binop type, we will just grab
+            # the data from the SSA IR instruction
+            mnemonic(rdestination, ImmediateType.INTEGER, rright),
             Store(destination, rdestination),
         )
 
@@ -159,7 +165,7 @@ class MacroOpGenerator:
 
     def lower(self, instruction: IRInstruction) -> None:
         match instruction.rvalue:
-            case AtomicRValue(token):
+            case AtomRValue(token):
                 self.lower_atom_op(instruction.destination, token)
             case BinaryRValue(kind, left, right):
                 self.lower_binary_op(kind, instruction.destination, left, right)

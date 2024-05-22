@@ -67,6 +67,12 @@ class Machine(MacroOpVisitor[None]):
         number: RegisterNumber,
         type: typing.Literal[ImmediateType.INTEGER],
     ) -> int: ...
+    @typing.overload
+    def get_register(
+        self,
+        number: RegisterNumber,
+        type: ImmediateType,
+    ) -> RuntimeType: ...
 
     def get_register(self, number: RegisterNumber, type: ImmediateType) -> RuntimeType:
         value = self.get_register_raw(number)
@@ -130,45 +136,45 @@ class Machine(MacroOpVisitor[None]):
         self.set_memory_raw(op.destination * REGISTER_SIZE, REGISTER_SIZE, op.immediate)
 
     def visit_add(self, op: Add) -> None:
-        left = self.get_register(op.left, ImmediateType.INTEGER)
-        right = self.get_register(op.right, ImmediateType.INTEGER)
+        left = self.get_register(op.left, op.type)
+        right = self.get_register(op.right, op.type)
 
         self.set_register(op.destination, left + right)
 
     def visit_sub(self, op: Sub) -> None:
-        left = self.get_register(op.left, ImmediateType.INTEGER)
-        right = self.get_register(op.right, ImmediateType.INTEGER)
+        left = self.get_register(op.left, op.type)
+        right = self.get_register(op.right, op.type)
 
         self.set_register(op.destination, left - right)
 
     def visit_mul(self, op: Mul) -> None:
-        left = self.get_register(op.left, ImmediateType.INTEGER)
-        right = self.get_register(op.right, ImmediateType.INTEGER)
+        left = self.get_register(op.left, op.type)
+        right = self.get_register(op.right, op.type)
 
         self.set_register(op.destination, left * right)
 
     def visit_div(self, op: Div) -> None:
-        left = self.get_register(op.left, ImmediateType.INTEGER)
-        right = self.get_register(op.right, ImmediateType.INTEGER)
+        left = self.get_register(op.left, op.type)
+        right = self.get_register(op.right, op.type)
 
         self.set_register(op.destination, left // right)
 
     def visit_mod(self, op: Mod) -> None:
-        left = self.get_register(op.left, ImmediateType.INTEGER)
-        right = self.get_register(op.right, ImmediateType.INTEGER)
+        left = self.get_register(op.left, op.type)
+        right = self.get_register(op.right, op.type)
 
         self.set_register(op.destination, left % right)
 
     def visit_pos(self, op: Pos) -> None:
         self.set_register(
             op.destination,
-            +self.get_register(op.source, ImmediateType.INTEGER),
+            +self.get_register(op.source, op.type),
         )
 
     def visit_neg(self, op: Neg) -> None:
         self.set_register(
             op.destination,
-            -self.get_register(op.source, ImmediateType.INTEGER),
+            -self.get_register(op.source, op.type),
         )
 
     def visit_dump_memory(self, op: DumpMemory) -> None:

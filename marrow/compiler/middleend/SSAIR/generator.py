@@ -5,7 +5,7 @@ import typing
 from marrow.compiler.frontend.ast import expr
 
 from .instruction import IRInstruction
-from .rvalue import AtomicRValue
+from .rvalue import AtomRValue
 from .rvalue import BinaryRValue
 from .rvalue import UnaryRValue
 
@@ -52,7 +52,7 @@ class IRGenerator(expr.ExprVisitor[None]):
 
     def visit_literal_scalar_expr(self, expression: expr.LiteralScalarExpr) -> None:
         location = self.allocate_location(expression)
-        instruction = IRInstruction(location, AtomicRValue(expression.token))
+        instruction = IRInstruction(location, AtomRValue(expression.token))
 
         self.instructions.append(instruction)
 

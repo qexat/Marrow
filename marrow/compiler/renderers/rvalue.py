@@ -15,7 +15,7 @@ if typing.TYPE_CHECKING:
 
 
 class RValueRenderer(rvalue.RValueVisitor[str]):
-    def visit_atomic_rvalue(self, value: rvalue.AtomicRValue) -> str:
+    def visit_atomic_rvalue(self, value: rvalue.AtomRValue) -> str:
         lexeme = value.token.lexeme
 
         match typing.cast("AtomTokenType", value.token.type):

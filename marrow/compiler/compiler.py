@@ -118,7 +118,7 @@ class Compiler:
     def make_macro_ops_generation_log(self, macro_ops: list[MacroOp]) -> str:
         buffer = io.StringIO()
 
-        print(f"generated {len(macro_ops)} ops", file=buffer)
+        print(f"generated {len(macro_ops)} macro ops", file=buffer)
 
         if self.debug:
             print(self.make_macro_ops_log(macro_ops), file=buffer)

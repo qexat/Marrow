@@ -50,7 +50,7 @@ class MacroOpRenderer(MacroOpVisitor[str]):
     def visit_store_immediate(self, op: StoreImmediate) -> str:
         immediate = int.from_bytes(op.immediate)
 
-        return f"\x1b[1m{'STOREI':<16}\x1b[22m {op.destination:>#16x} {immediate:>16}"
+        return f"\x1b[1m{'STOREIMM':<16}\x1b[22m {op.destination:>#16x} {immediate:>16}"
 
     def visit_sub(self, op: Sub) -> str:
         return f"\x1b[1m{'SUB':<16}\x1b[22m {op.destination:>#16x} {op.left:>#16x} {op.right:>#16x}"

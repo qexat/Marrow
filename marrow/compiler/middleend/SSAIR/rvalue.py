@@ -13,7 +13,7 @@ if typing.TYPE_CHECKING:
 
 
 class RValueVisitor[R_co](typing.Protocol):
-    def visit_atomic_rvalue(self, value: AtomicRValue) -> R_co: ...
+    def visit_atomic_rvalue(self, value: AtomRValue) -> R_co: ...
     def visit_binary_rvalue(self, value: BinaryRValue) -> R_co: ...
     def visit_unary_rvalue(self, value: UnaryRValue) -> R_co: ...
 
@@ -25,7 +25,7 @@ class RValueBase(abc.ABC):
 
 
 @attrs.frozen
-class AtomicRValue(RValueBase):
+class AtomRValue(RValueBase):
     token: Token
 
     def accept[R](self, visitor: RValueVisitor[R]) -> R:
@@ -51,4 +51,4 @@ class UnaryRValue(RValueBase):
         return visitor.visit_unary_rvalue(self)
 
 
-type RValue = AtomicRValue | BinaryRValue | UnaryRValue
+type RValue = AtomRValue | BinaryRValue | UnaryRValue
