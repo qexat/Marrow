@@ -24,9 +24,9 @@ if typing.TYPE_CHECKING:
     from marrow.compiler.backend.macro.ops import BinaryArith
     from marrow.compiler.backend.macro.ops import DumpMemory
     from marrow.compiler.backend.macro.ops import Load
-    from marrow.compiler.backend.macro.ops import MacroOp
     from marrow.compiler.backend.macro.ops import Store
     from marrow.compiler.backend.macro.ops import StoreImmediate
+    from marrow.compiler.common import MacroOp
     from marrow.endec import EnDec
     from marrow.logger import Logger
     from marrow.types import ByteCount
