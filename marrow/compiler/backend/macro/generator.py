@@ -4,19 +4,19 @@ import collections.abc
 import io
 import typing
 
-from marrow.compiler.backend.funcs import BinaryArithFunc
-from marrow.compiler.backend.funcs import UnaryArithFunc
+from marrow.compiler.backend.funcs import BinaryArithmeticFunc
+from marrow.compiler.backend.funcs import UnaryArithmeticFunc
 from marrow.compiler.common import TokenType
 from marrow.compiler.middleend.SSAIR.rvalue import AtomRValue
 from marrow.compiler.middleend.SSAIR.rvalue import BinaryRValue
 from marrow.compiler.middleend.SSAIR.rvalue import UnaryRValue
 from marrow.types import ImmediateType
 
-from .ops import BinaryArith
+from .ops import BinaryArithmetic
 from .ops import Load
 from .ops import Store
 from .ops import StoreImmediate
-from .ops import UnaryArith
+from .ops import UnaryArithmetic
 
 if typing.TYPE_CHECKING:
     from marrow.compiler.common import BinaryOpTokenType
@@ -32,17 +32,17 @@ if typing.TYPE_CHECKING:
     from .ops import MacroOp
 
 
-BINOP_FUNC_MAPPING: dict[BinaryOpTokenType, BinaryArithFunc] = {
-    TokenType.MINUS: BinaryArithFunc.SUB,
-    TokenType.PERCENT: BinaryArithFunc.MOD,
-    TokenType.PLUS: BinaryArithFunc.ADD,
-    TokenType.SLASH: BinaryArithFunc.DIV,
-    TokenType.STAR: BinaryArithFunc.MUL,
+BINOP_FUNC_MAPPING: dict[BinaryOpTokenType, BinaryArithmeticFunc] = {
+    TokenType.MINUS: BinaryArithmeticFunc.SUB,
+    TokenType.PERCENT: BinaryArithmeticFunc.MOD,
+    TokenType.PLUS: BinaryArithmeticFunc.ADD,
+    TokenType.SLASH: BinaryArithmeticFunc.DIV,
+    TokenType.STAR: BinaryArithmeticFunc.MUL,
 }
 
-UNOP_FUNC_MAPPING: dict[UnaryOpTokenType, UnaryArithFunc] = {
-    TokenType.MINUS: UnaryArithFunc.NEG,
-    TokenType.PLUS: UnaryArithFunc.POS,
+UNOP_FUNC_MAPPING: dict[UnaryOpTokenType, UnaryArithmeticFunc] = {
+    TokenType.MINUS: UnaryArithmeticFunc.NEG,
+    TokenType.PLUS: UnaryArithmeticFunc.POS,
 }
 
 
@@ -130,7 +130,7 @@ class MacroOpGenerator:
             # NOTE: in the future, the SSA IR will be produced from a typed AST
             # so we won't have to hardcode the binop type, we will just grab
             # the data from the SSA IR instruction
-            BinaryArith(func, ImmediateType.INTEGER, rdestination, rleft, rright),
+            BinaryArithmetic(func, ImmediateType.INTEGER, rdestination, rleft, rright),
             Store(destination, rdestination),
         )
 
@@ -152,7 +152,7 @@ class MacroOpGenerator:
             # NOTE: in the future, the SSA IR will be produced from a typed AST
             # so we won't have to hardcode the binop type, we will just grab
             # the data from the SSA IR instruction
-            UnaryArith(func, ImmediateType.INTEGER, rdestination, rright),
+            UnaryArithmetic(func, ImmediateType.INTEGER, rdestination, rright),
             Store(destination, rdestination),
         )
 

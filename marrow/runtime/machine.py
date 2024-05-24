@@ -7,10 +7,10 @@ import operator
 import time
 import typing
 
-from marrow.compiler.backend.funcs import BinaryArithFunc
-from marrow.compiler.backend.funcs import UnaryArithFunc
+from marrow.compiler.backend.funcs import BinaryArithmeticFunc
+from marrow.compiler.backend.funcs import UnaryArithmeticFunc
 from marrow.compiler.backend.macro.ops import MacroOpVisitor
-from marrow.compiler.backend.macro.ops import UnaryArith
+from marrow.compiler.backend.macro.ops import UnaryArithmetic
 from marrow.types import ImmediateType
 from marrow.types import RuntimeType
 
@@ -21,7 +21,7 @@ from .rat import ReadAccess
 from .rat import WriteAccess
 
 if typing.TYPE_CHECKING:
-    from marrow.compiler.backend.macro.ops import BinaryArith
+    from marrow.compiler.backend.macro.ops import BinaryArithmetic
     from marrow.compiler.backend.macro.ops import DumpMemory
     from marrow.compiler.backend.macro.ops import Load
     from marrow.compiler.backend.macro.ops import Store
@@ -37,16 +37,16 @@ if typing.TYPE_CHECKING:
 
 
 BINOP_IMPL_MAPPING = {
-    BinaryArithFunc.ADD: operator.add,
-    BinaryArithFunc.DIV: operator.floordiv,
-    BinaryArithFunc.MOD: operator.mod,
-    BinaryArithFunc.MUL: operator.mul,
-    BinaryArithFunc.SUB: operator.sub,
+    BinaryArithmeticFunc.ADD: operator.add,
+    BinaryArithmeticFunc.DIV: operator.floordiv,
+    BinaryArithmeticFunc.MOD: operator.mod,
+    BinaryArithmeticFunc.MUL: operator.mul,
+    BinaryArithmeticFunc.SUB: operator.sub,
 }
 
 UNOP_IMPL_MAPPING = {
-    UnaryArithFunc.NEG: operator.neg,
-    UnaryArithFunc.POS: operator.pos,
+    UnaryArithmeticFunc.NEG: operator.neg,
+    UnaryArithmeticFunc.POS: operator.pos,
 }
 
 
@@ -147,7 +147,7 @@ class Machine(MacroOpVisitor[None]):
     def visit_store_immediate(self, op: StoreImmediate) -> None:
         self.set_memory_raw(op.destination * REGISTER_SIZE, REGISTER_SIZE, op.immediate)
 
-    def visit_binary_arith(self, op: BinaryArith) -> None:
+    def visit_binary_arithmetic(self, op: BinaryArithmetic) -> None:
         left = self.get_register(op.left, op.type)
         right = self.get_register(op.right, op.type)
 
@@ -155,7 +155,7 @@ class Machine(MacroOpVisitor[None]):
 
         self.set_register(op.destination, impl(left, right))
 
-    def visit_unary_arith(self, op: UnaryArith) -> None:
+    def visit_unary_arithmetic(self, op: UnaryArithmetic) -> None:
         impl = UNOP_IMPL_MAPPING[op.func]
 
         self.set_register(op.destination, impl(self.get_register(op.source, op.type)))

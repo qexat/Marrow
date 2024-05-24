@@ -10,8 +10,8 @@ if typing.TYPE_CHECKING:
     from marrow.types import MemoryAddress
     from marrow.types import RegisterNumber
 
-    from ..funcs import BinaryArithFunc
-    from ..funcs import UnaryArithFunc
+    from ..funcs import BinaryArithmeticFunc
+    from ..funcs import UnaryArithmeticFunc
 
 
 class MacroOpVisitor[R_co](typing.Protocol):
@@ -19,8 +19,8 @@ class MacroOpVisitor[R_co](typing.Protocol):
     def visit_store(self, op: Store) -> R_co: ...
     def visit_store_immediate(self, op: StoreImmediate) -> R_co: ...
 
-    def visit_binary_arith(self, op: BinaryArith) -> R_co: ...
-    def visit_unary_arith(self, op: UnaryArith) -> R_co: ...
+    def visit_binary_arithmetic(self, op: BinaryArithmetic) -> R_co: ...
+    def visit_unary_arithmetic(self, op: UnaryArithmetic) -> R_co: ...
 
     def visit_dump_memory(self, op: DumpMemory) -> R_co: ...
 
@@ -60,28 +60,29 @@ class StoreImmediate(MacroOpBase):
 
 
 @attrs.frozen
-class BinaryArith(MacroOpBase):
-    func: BinaryArithFunc
+class BinaryArithmetic(MacroOpBase):
+    func: BinaryArithmeticFunc
     type: ImmediateType
     destination: RegisterNumber
     left: RegisterNumber
     right: RegisterNumber
 
     def accept[R](self, visitor: MacroOpVisitor[R]) -> R:
-        return visitor.visit_binary_arith(self)
+        return visitor.visit_binary_arithmetic(self)
 
 
 @attrs.frozen
-class UnaryArith(MacroOpBase):
-    func: UnaryArithFunc
+class UnaryArithmetic(MacroOpBase):
+    func: UnaryArithmeticFunc
     type: ImmediateType
     destination: RegisterNumber
     source: RegisterNumber
 
     def accept[R](self, visitor: MacroOpVisitor[R]) -> R:
-        return visitor.visit_unary_arith(self)
+        return visitor.visit_unary_arithmetic(self)
 
 
+# !! TEMPORARY !! #
 @attrs.frozen
 class DumpMemory(MacroOpBase):
     section_id: int
@@ -92,4 +93,4 @@ class DumpMemory(MacroOpBase):
 
 type LoadStoreMacroOp = Load | Store | StoreImmediate
 type DebugMacroOp = DumpMemory
-type MacroOp = LoadStoreMacroOp | BinaryArith | UnaryArith | DebugMacroOp
+type MacroOp = LoadStoreMacroOp | BinaryArithmetic | UnaryArithmetic | DebugMacroOp

@@ -2,9 +2,9 @@ from __future__ import annotations
 
 import typing
 
-from marrow.compiler.backend.macro.ops import BinaryArith
+from marrow.compiler.backend.macro.ops import BinaryArithmetic
 from marrow.compiler.backend.macro.ops import MacroOpVisitor
-from marrow.compiler.backend.macro.ops import UnaryArith
+from marrow.compiler.backend.macro.ops import UnaryArithmetic
 
 if typing.TYPE_CHECKING:
     from marrow.compiler.backend.macro.ops import DumpMemory
@@ -15,7 +15,7 @@ if typing.TYPE_CHECKING:
 
 
 class MacroOpRenderer(MacroOpVisitor[str]):
-    def visit_binary_arith(self, op: BinaryArith) -> str:
+    def visit_binary_arithmetic(self, op: BinaryArithmetic) -> str:
         return f"\x1b[1m{op.func.name:<16}\x1b[22m {op.destination:>#16x} {op.left:>#16x} {op.right:>#16x}"
 
     def visit_dump_memory(self, op: DumpMemory) -> str:
@@ -32,7 +32,7 @@ class MacroOpRenderer(MacroOpVisitor[str]):
 
         return f"\x1b[1m{'STOREIMM':<16}\x1b[22m {op.destination:>#16x} {immediate:>16}"
 
-    def visit_unary_arith(self, op: UnaryArith) -> str:
+    def visit_unary_arithmetic(self, op: UnaryArithmetic) -> str:
         return f"\x1b[1m{op.func.name:<16}\x1b[22m {op.destination:>#16x} {op.source:>#16x}"
 
     def render(self, op: MacroOp) -> str:

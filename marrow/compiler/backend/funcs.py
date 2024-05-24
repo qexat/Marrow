@@ -1,7 +1,7 @@
 import enum
 
 
-class BinaryArithFunc(enum.IntEnum):
+class BinaryArithmeticFunc(enum.IntEnum):
     ADD = enum.auto()
     SUB = enum.auto()
     MUL = enum.auto()
@@ -9,6 +9,6 @@ class BinaryArithFunc(enum.IntEnum):
     MOD = enum.auto()
 
 
-class UnaryArithFunc(enum.IntEnum):
+class UnaryArithmeticFunc(enum.IntEnum):
     POS = enum.auto()
     NEG = enum.auto()
