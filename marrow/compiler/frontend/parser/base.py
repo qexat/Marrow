@@ -226,7 +226,6 @@ class ParserBase:
         expression = self.parse_expr()
 
         if self.buffer and self.buffer[0].type is not TokenType.EOF:
-            print(self.buffer)
             self.logger.warn(
                 f"parser buffer still contains {len(self.buffer)} token(s)",
             )
