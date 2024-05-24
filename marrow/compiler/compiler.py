@@ -30,13 +30,12 @@ class Compiler:
         self,
         logger: Logger,
         encoder_decoder: EnDec,
-        file: typing.TextIO,
         verbose: bool,
         debug: bool,
     ) -> None:
         self.logger: typing.Final = logger
 
-        self.resources: typing.Final = CompilerResources(file)
+        self.resources: typing.Final = CompilerResources(io.StringIO())
 
         self.verbose: typing.Final = verbose
         self.debug: typing.Final = debug
@@ -62,6 +61,9 @@ class Compiler:
         )
 
         self.logger.success("compiler initialized")
+
+    def initialize_resources(self, file: typing.TextIO) -> None:
+        self.resources.file = file
 
     def get_file_name(self) -> str:
         return self.resources.file.name or "<string>"
@@ -156,7 +158,8 @@ class Compiler:
 
         self.resources.macro_ops = macro_ops
 
-    def compile(self) -> int:
+    def compile(self, source: typing.TextIO) -> int:
+        self.initialize_resources(source)
         self.logger.info(f"starting compilation of {self.get_file_name()!r}")
 
         time_start = time.perf_counter()

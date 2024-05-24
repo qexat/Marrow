@@ -9,14 +9,7 @@ from marrow.runtime import Machine
 
 
 class Environment:
-    def __init__(
-        self,
-        *,
-        source: typing.TextIO,
-        verbose: bool,
-        debug: bool,
-    ) -> None:
-        self.source: typing.Final = source
+    def __init__(self, *, verbose: bool, debug: bool) -> None:
         self.verbose: typing.Final = verbose
         self.debug: typing.Final = debug
 
@@ -25,7 +18,6 @@ class Environment:
         self.compiler: typing.Final = Compiler(
             self.logger,
             self.encoder_decoder,
-            self.source,
             self.verbose,
             self.debug,
         )
@@ -44,7 +36,6 @@ class Environment:
     @classmethod
     def from_args(cls, namespace: argparse.Namespace) -> typing.Self:
         return cls(
-            source=namespace.source,
             verbose=namespace.verbose,
             debug=namespace.debug,
         )
@@ -59,11 +50,11 @@ class Environment:
 
         return buffer.getvalue()
 
-    def compile(self) -> int:
-        return self.compiler.compile()
+    def compile(self, source: typing.TextIO) -> int:
+        return self.compiler.compile(source)
 
-    def run(self) -> int:
-        exit_code = self.compiler.compile()
+    def run(self, source: typing.TextIO) -> int:
+        exit_code = self.compiler.compile(source)
 
         if exit_code > 0:
             return exit_code

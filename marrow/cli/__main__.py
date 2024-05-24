@@ -12,9 +12,9 @@ def main() -> int:
 
     match namespace.command:
         case "compile":
-            return environment.compile()
+            return environment.compile(namespace.source)
         case "run":
-            return environment.run()
+            return environment.run(namespace.source)
         case "help":
             parser.get_main_parser().print_help()
             return 0
