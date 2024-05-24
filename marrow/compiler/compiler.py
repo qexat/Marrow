@@ -35,7 +35,7 @@ class Compiler:
     ) -> None:
         self.logger: typing.Final = logger
 
-        self.resources: typing.Final = CompilerResources(io.StringIO())
+        self.resources = CompilerResources(io.StringIO())
 
         self.verbose: typing.Final = verbose
         self.debug: typing.Final = debug
@@ -63,10 +63,14 @@ class Compiler:
         self.logger.success("compiler initialized")
 
     def initialize_resources(self, file: typing.TextIO) -> None:
-        self.resources.file = file
+        self.resources = CompilerResources(file)
 
     def get_file_name(self) -> str:
-        return self.resources.file.name or "<string>"
+        return (
+            self.resources.file.name
+            if hasattr(self.resources.file, "name")
+            else "<string>"
+        )
 
     def log_preparative_setup(self, *names: str) -> None:
         buffer = io.StringIO()
@@ -177,9 +181,7 @@ class Compiler:
             self.logger.info("found invalid nodes!")
 
             for node in self.sanity_checker.invalid_nodes:
-                self.logger.error(node.message)
-
-            self.logger.error("errors occurred - aborting")
+                self.logger.error(node.message, source_path=node.token.file.name)
 
             return 1
 

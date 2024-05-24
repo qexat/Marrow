@@ -1,5 +1,6 @@
 import argparse
 import io
+import sys
 import typing
 
 from marrow.compiler import Compiler
@@ -51,7 +52,12 @@ class Environment:
         return buffer.getvalue()
 
     def compile(self, source: typing.TextIO) -> int:
-        return self.compiler.compile(source)
+        exit_code = self.compiler.compile(source)
+
+        if exit_code > 0:
+            self.logger.error("errors occurred - aborting")
+
+        return exit_code
 
     def run(self, source: typing.TextIO) -> int:
         exit_code = self.compiler.compile(source)
@@ -63,3 +69,30 @@ class Environment:
         self.logger.info("execution finished")
 
         return 0
+
+    def shell(self) -> int:
+        if sys.platform == "linux":
+            __import__("readline")
+
+        self.logger.banner("Marrow Shell - press Ctrl+C to exit")
+
+        exit_code = 0
+
+        while True:
+            try:
+                source_string = input("\x1b[95m>>>\x1b[39m ")
+            except (KeyboardInterrupt, EOFError):
+                break
+            else:
+                if not source_string:
+                    continue
+
+                source = io.StringIO(source_string)
+
+                if self.compiler.compile(source) == 0:
+                    self.machine.execute(
+                        self.compiler.resources.macro_ops,
+                        debug=self.debug,
+                    )
+
+        return exit_code

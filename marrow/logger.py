@@ -6,7 +6,7 @@ import typing
 import anstrip
 import attrs
 
-Symbol: typing.TypeAlias = typing.Literal["!", "?", "*", "i", "✓"]
+Symbol: typing.TypeAlias = typing.Literal["!", "?", "*", "i", "✓", "$"]
 
 
 class Printer(typing.Protocol):
@@ -32,8 +32,9 @@ class LogKind(enum.Enum):
     SUCCESS = LogKindData("✓", 10, sys.stdout)
     WARNING = LogKindData("!", 11, sys.stderr, bypasses_verbosity=True)
     INFO = LogKindData("i", 12, sys.stdout)
-    NOTE = LogKindData("*", 13, sys.stdout)
+    NOTE = LogKindData("*", 13, sys.stderr)
     DEBUG = LogKindData("?", 14, sys.stdout, bypasses_verbosity=True)
+    BANNER = LogKindData("$", 15, sys.stdout, bypasses_verbosity=True)
 
 
 class Logger:
@@ -107,3 +108,6 @@ class Logger:
             f"\x1b[38;5;{color}m[debug]\x1b[39m {message}",
             source_path=source_path,
         )
+
+    def banner(self, message: str) -> None:
+        self.log(LogKind.BANNER, message)

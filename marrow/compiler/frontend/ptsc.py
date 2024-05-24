@@ -40,6 +40,8 @@ class ParseTreeSanityChecker(expr.ExprVisitor[None]):
         bool
             Whether the parse tree is sane or not.
         """
+        self.invalid_nodes.clear()
+
         parse_tree.accept(self)
 
         return not self.invalid_nodes

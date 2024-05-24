@@ -18,6 +18,8 @@ def main() -> int:
         case "help":
             parser.get_main_parser().print_help()
             return 0
+        case "shell" | None:
+            return environment.shell()
         case _:
             environment.logger.error(f"unexpected command {namespace.command!r}")
             return 1
