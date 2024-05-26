@@ -37,53 +37,55 @@ Marrow programs can also be compiled without running. The `compile` command offe
 ```txt
 marrow/
 ├── cli
-│   ├── __main__.py
-│   └── parser.py
+│   ├── __main__.py
+│   └── parser.py
 ├── compiler
-│   ├── backend
-│   │   ├── funcs.py
-│   │   └── macro
-│   │       ├── generator.py
-│   │       └── ops.py
-│   ├── common.py
-│   ├── compiler.py
-│   ├── components.py
-│   ├── frontend
-│   │   ├── ast
-│   │   │   └── expr.py
-│   │   ├── parser
-│   │   │   ├── base.py
-│   │   │   ├── parser.py
-│   │   │   ├── precedence.py
-│   │   │   └── subparsers
-│   │   │       ├── atomexpr.py
-│   │   │       ├── nonprefixexpr.py
-│   │   │       └── prefixexpr.py
-│   │   ├── ptsc.py
-│   │   ├── tokenizer.py
-│   │   ├── token.py
-│   │   └── token_type.py
-│   ├── middleend
-│   │   └── SSAIR
-│   │       ├── generator.py
-│   │       ├── instruction.py
-│   │       └── rvalue.py
-│   ├── renderers
-│   │   ├── macroop.py
-│   │   ├── parse_tree.py
-│   │   ├── rvalue.py
-│   │   └── util.py
-│   └── resources.py
+│   ├── backend
+│   │   ├── funcs.py
+│   │   ├── macro
+│   │   │   ├── generator.py
+│   │   │   └── ops.py
+│   │   └── micro
+│   │       └── ops.py
+│   ├── common.py
+│   ├── compiler.py
+│   ├── components.py
+│   ├── frontend
+│   │   ├── ast
+│   │   │   └── expr.py
+│   │   ├── parser
+│   │   │   ├── base.py
+│   │   │   ├── parser.py
+│   │   │   ├── precedence.py
+│   │   │   └── subparsers
+│   │   │       ├── atomexpr.py
+│   │   │       ├── nonprefixexpr.py
+│   │   │       └── prefixexpr.py
+│   │   ├── ptsc.py
+│   │   ├── tokenizer.py
+│   │   ├── token.py
+│   │   └── token_type.py
+│   ├── middleend
+│   │   └── SSAIR
+│   │       ├── generator.py
+│   │       ├── instruction.py
+│   │       └── rvalue.py
+│   ├── renderers
+│   │   ├── macroop.py
+│   │   ├── parse_tree.py
+│   │   ├── rvalue.py
+│   │   └── util.py
+│   └── resources.py
 ├── endec.py
 ├── environment.py
 ├── logger.py
 ├── runtime
-│   ├── constants.py
-│   ├── machine.py
-│   └── rat.py
+│   ├── constants.py
+│   ├── machine.py
+│   └── rat.py
 └── types.py
 
-13 directories, 34 files
+14 directories, 35 files
 ```
 
 Command used to generate the tree:
