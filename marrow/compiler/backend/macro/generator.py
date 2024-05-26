@@ -4,8 +4,8 @@ import collections.abc
 import io
 import typing
 
-from marrow.compiler.backend.funcs import BinaryArithmeticFunc
-from marrow.compiler.backend.funcs import UnaryArithmeticFunc
+from marrow.compiler.backend.funcs import BINOP_FUNC_MAPPING
+from marrow.compiler.backend.funcs import UNOP_FUNC_MAPPING
 from marrow.compiler.common import TokenType
 from marrow.compiler.middleend.SSAIR.rvalue import AtomRValue
 from marrow.compiler.middleend.SSAIR.rvalue import BinaryRValue
@@ -30,20 +30,6 @@ if typing.TYPE_CHECKING:
     from marrow.types import RegisterNumber
 
     from .ops import MacroOp
-
-
-BINOP_FUNC_MAPPING: dict[BinaryOpTokenType, BinaryArithmeticFunc] = {
-    TokenType.MINUS: BinaryArithmeticFunc.SUB,
-    TokenType.PERCENT: BinaryArithmeticFunc.MOD,
-    TokenType.PLUS: BinaryArithmeticFunc.ADD,
-    TokenType.SLASH: BinaryArithmeticFunc.DIV,
-    TokenType.STAR: BinaryArithmeticFunc.MUL,
-}
-
-UNOP_FUNC_MAPPING: dict[UnaryOpTokenType, UnaryArithmeticFunc] = {
-    TokenType.MINUS: UnaryArithmeticFunc.NEG,
-    TokenType.PLUS: UnaryArithmeticFunc.POS,
-}
 
 
 class MacroOpGenerator:
