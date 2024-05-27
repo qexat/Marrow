@@ -7,13 +7,16 @@ import operator
 import time
 import typing
 
-from marrow.compiler.backend.funcs import BinaryArithmeticFunc
 from marrow.compiler.backend.funcs import UnaryArithmeticFunc
 from marrow.compiler.backend.macro.ops import MacroOpVisitor
 from marrow.compiler.backend.macro.ops import UnaryArithmetic
+from marrow.runtime.alu.alu import UnitFlags
+from marrow.tooling import RuntimeTooling
 from marrow.types import ImmediateType
 from marrow.types import RuntimeType
 
+from .alu.op import BINOP_MAPPING
+from .alu.op import UNOP_MAPPING
 from .constants import REGISTER_COUNT
 from .constants import REGISTER_INDEXES
 from .constants import REGISTER_SIZE
@@ -35,14 +38,6 @@ if typing.TYPE_CHECKING:
     from .rat import Access
 
 
-BINOP_IMPL_MAPPING = {
-    BinaryArithmeticFunc.ADD: operator.add,
-    BinaryArithmeticFunc.DIV: operator.floordiv,
-    BinaryArithmeticFunc.MOD: operator.mod,
-    BinaryArithmeticFunc.MUL: operator.mul,
-    BinaryArithmeticFunc.SUB: operator.sub,
-}
-
 UNOP_IMPL_MAPPING = {
     UnaryArithmeticFunc.NEG: operator.neg,
     UnaryArithmeticFunc.POS: operator.pos,
@@ -62,7 +57,7 @@ class Machine(MacroOpVisitor[None]):
         self.memory = bytearray(Machine.MEMORY_SIZE)
 
         self.access_tracking: list[Access] = []
-        self.tooling = tooling
+        self.tooling = RuntimeTooling.from_global(tooling)
 
     @typing.overload
     def get_register(
@@ -145,17 +140,22 @@ class Machine(MacroOpVisitor[None]):
         self.set_memory_raw(op.destination * REGISTER_SIZE, REGISTER_SIZE, op.immediate)
 
     def visit_binary_arithmetic(self, op: BinaryArithmetic) -> None:
-        left = self.get_register(op.left, op.type)
-        right = self.get_register(op.right, op.type)
+        left = self.get_register_raw(op.left)
+        right = self.get_register_raw(op.right)
 
-        impl = BINOP_IMPL_MAPPING[op.func]
+        result = self.tooling.alu.execute(BINOP_MAPPING[op.func](left, right))
 
-        self.set_register(op.destination, impl(left, right))
+        if UnitFlags.OVERFLOW in self.tooling.alu.flags:
+            self.tooling.logger.warn("overflow detected")
+
+        self.set_register_raw(op.destination, result)
 
     def visit_unary_arithmetic(self, op: UnaryArithmetic) -> None:
-        impl = UNOP_IMPL_MAPPING[op.func]
+        right = self.get_register_raw(op.source)
 
-        self.set_register(op.destination, impl(self.get_register(op.source, op.type)))
+        result = self.tooling.alu.execute(UNOP_MAPPING[op.func](right))
+
+        self.set_register_raw(op.destination, result)
 
     def visit_dump_memory(self, op: DumpMemory) -> None:
         self.tooling.logger.debug(self._generate_dump_memory_log(op.section_id))

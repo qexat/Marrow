@@ -10,6 +10,7 @@ from marrow.compiler.renderers.parse_tree import ParseTreeRenderer
 from marrow.compiler.renderers.rvalue import RValueRenderer
 from marrow.endec import EncoderDecoder
 from marrow.logger import Logger
+from marrow.runtime.alu.alu import ArithmeticLogicUnit
 
 
 @attrs.frozen
@@ -43,3 +44,12 @@ class CompilerTooling(GlobalTooling):
             MacroOpGenerator(tooling),
             MacroOpRenderer(),
         )
+
+
+@attrs.frozen
+class RuntimeTooling(GlobalTooling):
+    alu: ArithmeticLogicUnit
+
+    @classmethod
+    def from_global(cls, tooling: GlobalTooling) -> typing.Self:
+        return cls(tooling.endec, tooling.logger, ArithmeticLogicUnit(tooling))

@@ -4,7 +4,7 @@ import sys
 import typing
 
 from marrow.compiler import Compiler
-from marrow.runtime import Machine
+from marrow.runtime.machine import Machine
 
 from .tooling import GlobalTooling
 

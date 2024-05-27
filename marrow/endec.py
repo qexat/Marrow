@@ -20,16 +20,27 @@ FLOAT_FORMAT_CHAR = "d"
 INTEGER_FORMAT = BYTE_ORDER_CHAR + INTEGER_FORMAT_CHAR
 FLOAT_FORMAT = BYTE_ORDER_CHAR + FLOAT_FORMAT_CHAR
 
+INTEGER_MASK = 0xFF_FF_FF_FF_FF_FF_FF_FF  # 2**64 - 1
 
+
+# TODO: handle signed integers
 class EncoderDecoder:
-    def encode_immediate(self, value: RuntimeType) -> bytearray:
+    def encode_immediate(
+        self,
+        value: RuntimeType,
+        *,
+        truncate: bool = True,
+    ) -> bytearray:
         match value:
             case int():
-                return self.encode_integer(value)
+                return self.encode_integer(value, truncate=truncate)
             case float():
                 return self.encode_float(value)
 
-    def encode_integer(self, value: int) -> bytearray:
+    def encode_integer(self, value: int, *, truncate: bool = True) -> bytearray:
+        if truncate:
+            value = self.truncate_integer(value)
+
         packed = bytearray(8)
         struct.pack_into(INTEGER_FORMAT, packed, 0, value)
 
@@ -57,3 +68,9 @@ class EncoderDecoder:
         result, *_ = struct.unpack_from(FLOAT_FORMAT, value)
 
         return result
+
+    def does_integer_overflow(self, value: int) -> bool:
+        return value != self.truncate_integer(value)
+
+    def truncate_integer(self, value: int) -> int:
+        return value & INTEGER_MASK
