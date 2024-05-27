@@ -21,7 +21,9 @@ def main() -> int:
         case "shell" | None:
             return environment.shell()
         case _:
-            environment.logger.error(f"unexpected command {namespace.command!r}")
+            environment.tooling.logger.error(
+                f"unexpected command {namespace.command!r}",
+            )
             return 1
 
 

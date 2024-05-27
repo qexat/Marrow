@@ -5,16 +5,10 @@ import time
 import typing
 
 from marrow.compiler.backend.macro.ops import DumpMemory
-from marrow.compiler.components import IRGenerator
-from marrow.compiler.components import MacroOpGenerator
 from marrow.compiler.components import Parser
-from marrow.compiler.components import ParseTreeSanityChecker
 from marrow.compiler.components import Tokenizer
-from marrow.compiler.renderers import MacroOpRenderer
-from marrow.compiler.renderers import ParseTreeRenderer
-from marrow.compiler.renderers import RValueRenderer
 from marrow.compiler.renderers.util import render_memory_location
-from marrow.logger import Logger
+from marrow.tooling import CompilerTooling
 
 from .resources import CompilerResources
 
@@ -22,34 +16,17 @@ if typing.TYPE_CHECKING:
     from marrow.compiler.common import Expr
     from marrow.compiler.common import IRInstruction
     from marrow.compiler.common import MacroOp
-    from marrow.endec import EnDec
+    from marrow.tooling import GlobalTooling
 
 
 class Compiler:
-    def __init__(
-        self,
-        logger: Logger,
-        encoder_decoder: EnDec,
-        verbose: bool,
-        debug: bool,
-    ) -> None:
-        self.logger: typing.Final = logger
+    def __init__(self, tooling: GlobalTooling, verbose: bool, debug: bool) -> None:
+        self.tooling: typing.Final = CompilerTooling.from_global(tooling)
 
         self.resources = CompilerResources(io.StringIO())
 
         self.verbose: typing.Final = verbose
         self.debug: typing.Final = debug
-
-        self.sanity_checker: typing.Final = ParseTreeSanityChecker()
-        self.parse_tree_renderer: typing.Final = ParseTreeRenderer()
-        self.ir_generator: typing.Final = IRGenerator()
-        self.rvalue_renderer: typing.Final = RValueRenderer()
-        self.encoder_decoder: typing.Final = encoder_decoder
-        self.macro_op_generator: typing.Final = MacroOpGenerator(
-            self.logger,
-            self.encoder_decoder,
-        )
-        self.macro_op_renderer: typing.Final = MacroOpRenderer()
 
         self.log_preparative_setup(
             "parse tree sanity checker",
@@ -60,7 +37,7 @@ class Compiler:
             *(("macro op renderer",) if self.debug else ()),
         )
 
-        self.logger.success("compiler initialized")
+        self.tooling.logger.success("compiler initialized")
 
     def initialize_resources(self, file: typing.TextIO) -> None:
         self.resources = CompilerResources(file)
@@ -83,13 +60,13 @@ class Compiler:
         for name in names:
             print(f"• {name}", file=buffer)
 
-        self.logger.note(buffer.getvalue())
+        self.tooling.logger.note(buffer.getvalue())
 
     def make_parse_tree_log(self, parse_tree: Expr) -> str:
         buffer = io.StringIO()
 
         print("rendering the parse tree", file=buffer)
-        print(self.parse_tree_renderer.render(parse_tree), file=buffer)
+        print(self.tooling.parse_tree_renderer.render(parse_tree), file=buffer)
 
         return buffer.getvalue().removesuffix("\n")
 
@@ -98,7 +75,7 @@ class Compiler:
 
         for instruction in ir:
             lvalue = render_memory_location(instruction.destination)
-            rvalue = self.rvalue_renderer.render(instruction.rvalue)
+            rvalue = self.tooling.rvalue_renderer.render(instruction.rvalue)
             print(f"{lvalue} \x1b[38;2;233;198;175m:=\x1b[39m {rvalue}", file=buffer)
 
         return buffer.getvalue().removesuffix("\n")
@@ -117,7 +94,7 @@ class Compiler:
         buffer = io.StringIO()
 
         for op in macro_ops:
-            print(self.macro_op_renderer.render(op), file=buffer)
+            print(self.tooling.macro_op_renderer.render(op), file=buffer)
 
         return buffer.getvalue().removesuffix("\n")
 
@@ -133,38 +110,38 @@ class Compiler:
 
     def tokenize(self) -> None:
         tokens = Tokenizer(self.resources.file).run()
-        self.logger.info("tokenized source")
+        self.tooling.logger.info("tokenized source")
 
         self.resources.tokens = tokens
 
     def parse(self) -> None:
-        parse_tree = Parser(self.resources.tokens, self.logger).run()
-        self.logger.info("parsed source")
+        parse_tree = Parser(self.resources.tokens, self.tooling).run()
+        self.tooling.logger.info("parsed source")
 
         if self.debug:
-            self.logger.debug(self.make_parse_tree_log(parse_tree))
+            self.tooling.logger.debug(self.make_parse_tree_log(parse_tree))
 
         self.resources.parse_tree = parse_tree
 
     def generate_ssa_ir(self) -> None:
-        ir = self.ir_generator.generate(self.resources.parse_tree)
-        self.logger.info(self.make_ssa_ir_generation_log(ir))
+        ir = self.tooling.ir_generator.generate(self.resources.parse_tree)
+        self.tooling.logger.info(self.make_ssa_ir_generation_log(ir))
 
         self.resources.ir = ir
 
     def generate_macro_ops(self) -> None:
-        macro_ops = self.macro_op_generator.generate(self.resources.ir)
-        self.logger.info(self.make_macro_ops_generation_log(macro_ops))
+        macro_ops = self.tooling.macro_op_generator.generate(self.resources.ir)
+        self.tooling.logger.info(self.make_macro_ops_generation_log(macro_ops))
 
         if self.debug:
             macro_ops.append(DumpMemory(0))
-            self.logger.info("injected memory dump op")
+            self.tooling.logger.info("injected memory dump op")
 
         self.resources.macro_ops = macro_ops
 
     def compile(self, source: typing.TextIO) -> int:
         self.initialize_resources(source)
-        self.logger.info(f"starting compilation of {self.get_file_name()!r}")
+        self.tooling.logger.info(f"starting compilation of {self.get_file_name()!r}")
 
         time_start = time.perf_counter()
 
@@ -172,20 +149,25 @@ class Compiler:
         self.parse()
 
         self.resources.file.close()
-        self.logger.note("done with the file - closed")
+        self.tooling.logger.note("done with the file - closed")
 
-        is_parse_tree_sane = self.sanity_checker.is_sane(self.resources.parse_tree)
-        self.logger.info("checked parse tree sanity")
+        is_parse_tree_sane = self.tooling.sanity_checker.is_sane(
+            self.resources.parse_tree,
+        )
+        self.tooling.logger.info("checked parse tree sanity")
 
         if not is_parse_tree_sane:
-            self.logger.info("found invalid nodes!")
+            self.tooling.logger.info("found invalid nodes!")
 
-            for node in self.sanity_checker.invalid_nodes:
-                self.logger.error(node.message, source_path=node.token.file.name)
+            for node in self.tooling.sanity_checker.invalid_nodes:
+                self.tooling.logger.error(
+                    node.message,
+                    source_path=node.token.file.name,
+                )
 
             return 1
 
-        self.logger.success("parse tree seems sane")
+        self.tooling.logger.success("parse tree seems sane")
 
         self.generate_ssa_ir()
         self.generate_macro_ops()
@@ -193,6 +175,6 @@ class Compiler:
         time_end = time.perf_counter()
 
         if self.debug:
-            self.logger.debug(f"compilation time: {time_end - time_start:.4f}s")
+            self.tooling.logger.debug(f"compilation time: {time_end - time_start:.4f}s")
 
         return 0

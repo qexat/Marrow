@@ -123,7 +123,7 @@ class LiteralScalarSubparser(AtomSubparser):
         if token.type is TokenType.FLOAT:
             row_start, line_start = token.get_line_span()[0]
 
-            parser.logger.warn(
+            parser.tooling.logger.warn(
                 self._make_float_warning_message(token),
                 source_path=f"{token.file.name}:{line_start}:{row_start}",
             )

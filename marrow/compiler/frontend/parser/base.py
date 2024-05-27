@@ -15,7 +15,7 @@ from marrow.compiler.frontend.parser import subparsers
 
 if typing.TYPE_CHECKING:
     from marrow.compiler.common import Token
-    from marrow.logger import Logger
+    from marrow.tooling import GlobalTooling
 
 
 class ParserBase:
@@ -26,8 +26,12 @@ class ParserBase:
     subparsers to be used.
     """
 
-    def __init__(self, tokens: collections.abc.Iterator[Token], logger: Logger) -> None:
-        self.logger = logger
+    def __init__(
+        self,
+        tokens: collections.abc.Iterator[Token],
+        tooling: GlobalTooling,
+    ) -> None:
+        self.tooling = tooling
 
         self.tokens: typing.Final = tokens
         self.buffer: list[Token] = []
@@ -226,7 +230,7 @@ class ParserBase:
         expression = self.parse_expr()
 
         if self.buffer and self.buffer[0].type is not TokenType.EOF:
-            self.logger.warn(
+            self.tooling.logger.warn(
                 f"parser buffer still contains {len(self.buffer)} token(s)",
             )
 

@@ -1,3 +1,5 @@
+# pyright: reportImportCycles = false
+
 from __future__ import annotations
 
 import collections.abc
@@ -24,8 +26,7 @@ if typing.TYPE_CHECKING:
     from marrow.compiler.common import LiteralTokenType
     from marrow.compiler.common import Token
     from marrow.compiler.common import UnaryOpTokenType
-    from marrow.endec import EnDec
-    from marrow.logger import Logger
+    from marrow.tooling import GlobalTooling
     from marrow.types import MemoryAddress
     from marrow.types import RegisterNumber
 
@@ -33,7 +34,7 @@ if typing.TYPE_CHECKING:
 
 
 class MacroOpGenerator:
-    def __init__(self, logger: Logger, encoder_decoder: EnDec) -> None:
+    def __init__(self, tooling: GlobalTooling) -> None:
         self.ops: list[MacroOp] = []
         self.available_registers: list[RegisterNumber] = [
             1,
@@ -57,8 +58,7 @@ class MacroOpGenerator:
         # at the end
         self.available_registers.reverse()
 
-        self.logger = logger
-        self.encoder_decoder = encoder_decoder
+        self.tooling = tooling
 
     def allocate_register(self) -> RegisterNumber:
         if not self.available_registers:
@@ -92,7 +92,7 @@ class MacroOpGenerator:
                 value = float(token.lexeme)
                 type = ImmediateType.FLOAT
 
-        immediate = self.encoder_decoder.encode_immediate(value)
+        immediate = self.tooling.endec.encode_immediate(value)
 
         op = StoreImmediate(destination, type, immediate)
         self.add_ops(op)
@@ -166,10 +166,7 @@ class MacroOpGenerator:
 
         return buffer.getvalue()
 
-    def generate(
-        self,
-        ir: collections.abc.Iterable[IRInstruction],
-    ) -> list[MacroOp]:
+    def generate(self, ir: collections.abc.Iterable[IRInstruction]) -> list[MacroOp]:
         for instruction in ir:
             self.lower(instruction)
 
@@ -178,6 +175,8 @@ class MacroOpGenerator:
         ]
 
         if nonfreed_registers:
-            self.logger.warn(self.generate_log_nonfreed_registers(nonfreed_registers))
+            self.tooling.logger.warn(
+                self.generate_log_nonfreed_registers(nonfreed_registers),
+            )
 
         return self.ops

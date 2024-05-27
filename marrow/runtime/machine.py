@@ -27,8 +27,7 @@ if typing.TYPE_CHECKING:
     from marrow.compiler.backend.macro.ops import Store
     from marrow.compiler.backend.macro.ops import StoreImmediate
     from marrow.compiler.common import MacroOp
-    from marrow.endec import EnDec
-    from marrow.logger import Logger
+    from marrow.tooling import GlobalTooling
     from marrow.types import ByteCount
     from marrow.types import MemoryAddress
     from marrow.types import RegisterNumber
@@ -54,7 +53,7 @@ class Machine(MacroOpVisitor[None]):
     MEMORY_SIZE = 0x10000
     SECTION_SIZE = 0x100
 
-    def __init__(self, logger: Logger, encoder_decoder: EnDec) -> None:
+    def __init__(self, tooling: GlobalTooling) -> None:
         self.register_file = bytearray(REGISTER_SIZE * REGISTER_COUNT)
         self.bank_mapping: dict[RegisterNumber, int] = {
             index: index * REGISTER_SIZE for index in REGISTER_INDEXES
@@ -63,9 +62,7 @@ class Machine(MacroOpVisitor[None]):
         self.memory = bytearray(Machine.MEMORY_SIZE)
 
         self.access_tracking: list[Access] = []
-
-        self.logger = logger
-        self.encoder_decoder = encoder_decoder
+        self.tooling = tooling
 
     @typing.overload
     def get_register(
@@ -89,7 +86,7 @@ class Machine(MacroOpVisitor[None]):
     def get_register(self, number: RegisterNumber, type: ImmediateType) -> RuntimeType:
         value = self.get_register_raw(number)
 
-        return self.encoder_decoder.decode_immediate(value, type)
+        return self.tooling.endec.decode_immediate(value, type)
 
     def get_register_raw(self, number: RegisterNumber) -> bytearray:
         self.access_tracking.append(ReadAccess(number))
@@ -98,7 +95,7 @@ class Machine(MacroOpVisitor[None]):
         return self.register_file[index : index + REGISTER_SIZE]
 
     def set_register(self, number: RegisterNumber, value: RuntimeType) -> None:
-        raw_value = self.encoder_decoder.encode_immediate(value)
+        raw_value = self.tooling.endec.encode_immediate(value)
 
         self.set_register_raw(number, raw_value)
 
@@ -161,7 +158,7 @@ class Machine(MacroOpVisitor[None]):
         self.set_register(op.destination, impl(self.get_register(op.source, op.type)))
 
     def visit_dump_memory(self, op: DumpMemory) -> None:
-        self.logger.debug(self._generate_dump_memory_log(op.section_id))
+        self.tooling.logger.debug(self._generate_dump_memory_log(op.section_id))
 
     def _to_hex_representation(self, value: RuntimeType) -> str:
         # FIXME: add support for more types
@@ -217,5 +214,5 @@ class Machine(MacroOpVisitor[None]):
         time_end = time.perf_counter()
 
         if debug:
-            self.logger.debug(f"execution time: {time_end - time_start:.4f}s")
-            self.logger.debug(self._generate_register_access_log())
+            self.tooling.logger.debug(f"execution time: {time_end - time_start:.4f}s")
+            self.tooling.logger.debug(self._generate_register_access_log())

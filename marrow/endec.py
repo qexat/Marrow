@@ -21,7 +21,7 @@ INTEGER_FORMAT = BYTE_ORDER_CHAR + INTEGER_FORMAT_CHAR
 FLOAT_FORMAT = BYTE_ORDER_CHAR + FLOAT_FORMAT_CHAR
 
 
-class EnDec:
+class EncoderDecoder:
     def encode_immediate(self, value: RuntimeType) -> bytearray:
         match value:
             case int():
