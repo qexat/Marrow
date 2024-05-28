@@ -34,63 +34,7 @@ Marrow programs can also be compiled without running. The `compile` command offe
 
 ## Project structure
 
-```txt
-marrow/
-├── cli
-│   ├── __main__.py
-│   └── parser.py
-├── compiler
-│   ├── backend
-│   │   ├── funcs.py
-│   │   ├── macro
-│   │   │   ├── generator.py
-│   │   │   └── ops.py
-│   │   └── micro
-│   │       └── ops.py
-│   ├── common.py
-│   ├── compiler.py
-│   ├── components.py
-│   ├── frontend
-│   │   ├── ast
-│   │   │   └── expr.py
-│   │   ├── parser
-│   │   │   ├── base.py
-│   │   │   ├── parser.py
-│   │   │   ├── precedence.py
-│   │   │   └── subparsers
-│   │   │       ├── atomexpr.py
-│   │   │       ├── nonprefixexpr.py
-│   │   │       └── prefixexpr.py
-│   │   ├── ptsc.py
-│   │   ├── tokenizer.py
-│   │   ├── token.py
-│   │   └── token_type.py
-│   ├── middleend
-│   │   └── SSAIR
-│   │       ├── generator.py
-│   │       ├── instruction.py
-│   │       └── rvalue.py
-│   ├── renderers
-│   │   ├── macroop.py
-│   │   ├── parse_tree.py
-│   │   ├── rvalue.py
-│   │   └── util.py
-│   └── resources.py
-├── endec.py
-├── environment.py
-├── logger.py
-├── runtime
-│   ├── alu
-│   │   ├── alu.py
-│   │   └── op.py
-│   ├── constants.py
-│   ├── machine.py
-│   └── rat.py
-├── tooling.py
-└── types.py
-
-15 directories, 38 files
-```
+See [tree.txt](./tree.txt).
 
 Command used to generate the tree:
 
