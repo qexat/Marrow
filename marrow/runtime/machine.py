@@ -3,11 +3,9 @@ from __future__ import annotations
 import collections.abc
 import io
 import itertools
-import operator
 import time
 import typing
 
-from marrow.compiler.backend.funcs import UnaryArithmeticFunc
 from marrow.compiler.backend.macro.ops import MacroOpVisitor
 from marrow.compiler.backend.macro.ops import UnaryArithmetic
 from marrow.runtime.alu.alu import UnitFlags
@@ -36,12 +34,6 @@ if typing.TYPE_CHECKING:
     from marrow.types import RegisterNumber
 
     from .rat import Access
-
-
-UNOP_IMPL_MAPPING = {
-    UnaryArithmeticFunc.NEG: operator.neg,
-    UnaryArithmeticFunc.POS: operator.pos,
-}
 
 
 class Machine(MacroOpVisitor[None]):
