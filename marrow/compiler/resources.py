@@ -21,3 +21,7 @@ class CompilerResources:
     parse_tree: Expr = attrs.field(factory=lambda: BlockExpr([]))
     ir: list[IRInstruction] = attrs.field(factory=list)
     macro_ops: list[MacroOp] = attrs.field(factory=list)
+
+    @property
+    def file_name(self) -> str:
+        return self.file.name if hasattr(self.file, "name") else "<string>"

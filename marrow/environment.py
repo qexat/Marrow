@@ -4,6 +4,7 @@ import sys
 import typing
 
 from marrow.compiler import Compiler
+from marrow.compiler.common import Bytecode
 from marrow.runtime.machine import Machine
 
 from .tooling import GlobalTooling
@@ -59,7 +60,9 @@ class Environment:
         if exit_code > 0:
             return exit_code
 
-        self.machine.execute(self.compiler.resources.macro_ops, debug=self.debug)
+        bytecode = Bytecode.from_resources(self.compiler.resources)
+
+        self.machine.execute(bytecode, debug=self.debug)
         self.tooling.logger.info("execution finished")
 
         return 0
@@ -84,9 +87,7 @@ class Environment:
                 source = io.StringIO(source_string)
 
                 if self.compiler.compile(source) == 0:
-                    self.machine.execute(
-                        self.compiler.resources.macro_ops,
-                        debug=self.debug,
-                    )
+                    bytecode = Bytecode.from_resources(self.compiler.resources)
+                    self.machine.execute(bytecode, debug=self.debug)
 
         return exit_code

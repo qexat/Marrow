@@ -42,13 +42,6 @@ class Compiler:
     def initialize_resources(self, file: typing.TextIO) -> None:
         self.resources = CompilerResources(file)
 
-    def get_file_name(self) -> str:
-        return (
-            self.resources.file.name
-            if hasattr(self.resources.file, "name")
-            else "<string>"
-        )
-
     def log_preparative_setup(self, *names: str) -> None:
         buffer = io.StringIO()
 
@@ -141,7 +134,9 @@ class Compiler:
 
     def compile(self, source: typing.TextIO) -> int:
         self.initialize_resources(source)
-        self.tooling.logger.info(f"starting compilation of {self.get_file_name()!r}")
+        self.tooling.logger.info(
+            f"starting compilation of {self.resources.file_name!r}",
+        )
 
         time_start = time.perf_counter()
 

@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import collections.abc
 import io
 import itertools
 import time
@@ -30,6 +29,7 @@ if typing.TYPE_CHECKING:
     from marrow.compiler.backend.macro.ops import Store
     from marrow.compiler.backend.macro.ops import StoreImmediate
     from marrow.compiler.backend.macro.ops import UnaryArithmetic
+    from marrow.compiler.common import Bytecode
     from marrow.compiler.common import MacroOp
     from marrow.tooling import GlobalTooling
     from marrow.types import ByteCount
@@ -51,6 +51,9 @@ class Machine(MacroOpVisitor[None]):
         self.bank_mapping: dict[RegisterNumber, int] = {
             index: index * REGISTER_SIZE for index in REGISTER_INDEXES
         }
+
+        self.instruction_count = 0
+        self.instructions: list[MacroOp] = []
 
         # the stack grows backwards!
         self.stack_address = Machine.MEMORY_SIZE
@@ -230,16 +233,25 @@ class Machine(MacroOpVisitor[None]):
     def visit_op(self, op: MacroOp) -> None:
         op.accept(self)
 
-    def execute(
-        self,
-        ops: collections.abc.Iterable[MacroOp],
-        *,
-        debug: bool = False,
-    ) -> None:
+    def jump(self, address: MemoryAddress) -> None:
+        self.instruction_count = address
+
+    def jump_relative(self, offset: MemoryAddress) -> None:
+        self.jump(self.instruction_count + offset)
+
+    def load_bytecode(self, bytecode: Bytecode) -> None:
+        self.instructions.extend(bytecode)
+
+    def execute(self, bytecode: Bytecode, *, debug: bool = False) -> None:
         time_start = time.perf_counter()
 
-        for op in ops:
-            self.visit_op(op)
+        self.load_bytecode(bytecode)
+        self.jump_relative(bytecode.entry_point)
+
+        while self.instruction_count < len(self.instructions):
+            self.visit_op(self.instructions[self.instruction_count])
+
+            self.instruction_count += 1
 
         time_end = time.perf_counter()
 
