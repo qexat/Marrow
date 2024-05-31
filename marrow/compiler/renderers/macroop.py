@@ -7,7 +7,7 @@ from marrow.compiler.backend.macro.ops import MacroOpVisitor
 from marrow.compiler.backend.macro.ops import UnaryArithmetic
 
 if typing.TYPE_CHECKING:
-    from marrow.compiler.backend.macro.ops import DumpMemory
+    from marrow.compiler.backend.macro.ops import DumpHeap
     from marrow.compiler.backend.macro.ops import Load
     from marrow.compiler.backend.macro.ops import Store
     from marrow.compiler.backend.macro.ops import StoreImmediate
@@ -18,7 +18,7 @@ class MacroOpRenderer(MacroOpVisitor[str]):
     def visit_binary_arithmetic(self, op: BinaryArithmetic) -> str:
         return f"\x1b[1m{op.func.name:<16}\x1b[22m {op.destination:>#16x} {op.left:>#16x} {op.right:>#16x}"
 
-    def visit_dump_memory(self, op: DumpMemory) -> str:
+    def visit_dump_memory(self, op: DumpHeap) -> str:
         return f"\x1b[1m{'DUMP_MEMORY':<16}\x1b[22m {op.section_id:>#16x}"
 
     def visit_load(self, op: Load) -> str:

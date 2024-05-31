@@ -37,5 +37,10 @@ class ImmediateType(enum.IntEnum):
     FLOAT = enum.auto()
 
 
+TYPE_SIZE_MAPPING: dict[ImmediateType, ByteCount] = {
+    ImmediateType.INTEGER: 8,
+    ImmediateType.FLOAT: 8,
+}
+
 # floats are actually disabled while we don't have micro-ops
 type RuntimeType = int | float

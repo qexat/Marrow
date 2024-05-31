@@ -38,7 +38,7 @@ class MicroOpVisitor[R_co](typing.Protocol):
     def visit_unary_arithmetic_int64(self, op: UnaryArithmeticInt64) -> R_co: ...
     def visit_unary_arithmetic_float(self, op: UnaryArithmeticFloat) -> R_co: ...
 
-    def visit_dump_memory(self, op: DumpMemory) -> R_co: ...
+    def visit_dump_memory(self, op: DumpHeap) -> R_co: ...
 
 
 class MicroOpBase(abc.ABC):
@@ -244,7 +244,7 @@ class UnaryArithmeticFloat(MicroOpBase):
 
 # !! TEMPORARY !! #
 @attrs.frozen
-class DumpMemory(MicroOpBase):
+class DumpHeap(MicroOpBase):
     section_id: int
 
     def accept[R](self, visitor: MicroOpVisitor[R]) -> R:
@@ -276,5 +276,5 @@ type UnaryArithmetic = (
     | UnaryArithmeticFloat
 )
 type MicroOp = (
-    LoadMicroOp | StoreMicroOp | BinaryArithmetic | UnaryArithmetic | DumpMemory
+    LoadMicroOp | StoreMicroOp | BinaryArithmetic | UnaryArithmetic | DumpHeap
 )

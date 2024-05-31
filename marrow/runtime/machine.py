@@ -7,9 +7,10 @@ import time
 import typing
 
 from marrow.compiler.backend.macro.ops import MacroOpVisitor
-from marrow.compiler.backend.macro.ops import UnaryArithmetic
+from marrow.compiler.backend.macro.ops import Pop
 from marrow.runtime.alu.alu import UnitFlags
 from marrow.tooling import RuntimeTooling
+from marrow.types import TYPE_SIZE_MAPPING
 from marrow.types import ImmediateType
 from marrow.types import RuntimeType
 
@@ -23,10 +24,12 @@ from .rat import WriteAccess
 
 if typing.TYPE_CHECKING:
     from marrow.compiler.backend.macro.ops import BinaryArithmetic
-    from marrow.compiler.backend.macro.ops import DumpMemory
+    from marrow.compiler.backend.macro.ops import DumpHeap
     from marrow.compiler.backend.macro.ops import Load
+    from marrow.compiler.backend.macro.ops import Push
     from marrow.compiler.backend.macro.ops import Store
     from marrow.compiler.backend.macro.ops import StoreImmediate
+    from marrow.compiler.backend.macro.ops import UnaryArithmetic
     from marrow.compiler.common import MacroOp
     from marrow.tooling import GlobalTooling
     from marrow.types import ByteCount
@@ -36,9 +39,12 @@ if typing.TYPE_CHECKING:
     from .rat import Access
 
 
+# TODO: interrupts & exceptions
 class Machine(MacroOpVisitor[None]):
-    MEMORY_SIZE = 0x10000
+    HEAP_SIZE = 0x10000
     SECTION_SIZE = 0x100
+    SECTION_COUNT = 0x100
+    MEMORY_SIZE = SECTION_SIZE * SECTION_COUNT
 
     def __init__(self, tooling: GlobalTooling) -> None:
         self.register_file = bytearray(REGISTER_SIZE * REGISTER_COUNT)
@@ -46,7 +52,14 @@ class Machine(MacroOpVisitor[None]):
             index: index * REGISTER_SIZE for index in REGISTER_INDEXES
         }
 
+        # the stack grows backwards!
+        self.stack_address = Machine.MEMORY_SIZE
+        self.frame_address = self.stack_address
+
         self.memory = bytearray(Machine.MEMORY_SIZE)
+
+        # for now, it's separated
+        self.heap = bytearray(Machine.HEAP_SIZE)
 
         self.access_tracking: list[Access] = []
         self.tooling = RuntimeTooling.from_global(tooling)
@@ -92,15 +105,29 @@ class Machine(MacroOpVisitor[None]):
 
         self.register_file[index : index + REGISTER_SIZE] = value
 
+    def push(self, value: bytearray, size: int, /) -> None:
+        value_size = len(value)
+
+        self.frame_address -= size
+        self.memory[self.frame_address : self.frame_address + size] = value[
+            value_size - size : value_size
+        ]
+
+    def pop(self, size: int, /) -> bytearray:
+        data = self.memory[self.frame_address : self.frame_address + size]
+        self.frame_address += size
+
+        return data
+
     # TODO: bound checking
-    def get_memory_raw(self, address: MemoryAddress, size: int) -> bytearray:
+    def get_heap_raw(self, address: MemoryAddress, size: int) -> bytearray:
         if size <= 0:
             return bytearray()
 
-        return self.memory[address : address + size]
+        return self.heap[address : address + size]
 
     # TODO: bound checking
-    def set_memory_raw(
+    def set_heap_raw(
         self,
         address: MemoryAddress,
         size: ByteCount,
@@ -111,25 +138,36 @@ class Machine(MacroOpVisitor[None]):
 
         payload_size = len(payload)
 
-        self.memory[address : address + size] = payload[
+        self.heap[address : address + size] = payload[
             payload_size - size : payload_size
         ]
 
     def visit_load(self, op: Load) -> None:
         self.set_register_raw(
             op.destination,
-            self.get_memory_raw(op.source * REGISTER_SIZE, REGISTER_SIZE),
+            self.get_heap_raw(op.source * REGISTER_SIZE, REGISTER_SIZE),
         )
 
     def visit_store(self, op: Store) -> None:
-        self.set_memory_raw(
+        self.set_heap_raw(
             op.destination * REGISTER_SIZE,
             REGISTER_SIZE,
             self.get_register_raw(op.source),
         )
 
     def visit_store_immediate(self, op: StoreImmediate) -> None:
-        self.set_memory_raw(op.destination * REGISTER_SIZE, REGISTER_SIZE, op.immediate)
+        self.set_heap_raw(op.destination * REGISTER_SIZE, REGISTER_SIZE, op.immediate)
+
+    def visit_push(self, op: Push) -> None:
+        size = TYPE_SIZE_MAPPING[op.type]
+
+        self.push(op.source, size)
+
+    def visit_pop(self, op: Pop) -> None:
+        size = TYPE_SIZE_MAPPING[op.type]
+        data = self.pop(size)
+
+        self.set_register_raw(op.destination, data)
 
     def visit_binary_arithmetic(self, op: BinaryArithmetic) -> None:
         left = self.get_register_raw(op.left)
@@ -149,7 +187,7 @@ class Machine(MacroOpVisitor[None]):
 
         self.set_register_raw(op.destination, result)
 
-    def visit_dump_memory(self, op: DumpMemory) -> None:
+    def visit_dump_memory(self, op: DumpHeap) -> None:
         self.tooling.logger.debug(self._generate_dump_memory_log(op.section_id))
 
     def _to_hex_representation(self, value: RuntimeType) -> str:
@@ -165,7 +203,7 @@ class Machine(MacroOpVisitor[None]):
     def _generate_dump_memory_log(self, section_id: int) -> str:
         buffer = io.StringIO()
         start = section_id * Machine.SECTION_SIZE
-        section = self.memory[start : start + Machine.SECTION_SIZE]
+        section = self.heap[start : start + Machine.SECTION_SIZE]
 
         print(f"memory dump (section {section_id:#x})", file=buffer)
 

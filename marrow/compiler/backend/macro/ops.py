@@ -18,11 +18,13 @@ class MacroOpVisitor[R_co](typing.Protocol):
     def visit_load(self, op: Load) -> R_co: ...
     def visit_store(self, op: Store) -> R_co: ...
     def visit_store_immediate(self, op: StoreImmediate) -> R_co: ...
+    def visit_push(self, op: Push) -> R_co: ...
+    def visit_pop(self, op: Pop) -> R_co: ...
 
     def visit_binary_arithmetic(self, op: BinaryArithmetic) -> R_co: ...
     def visit_unary_arithmetic(self, op: UnaryArithmetic) -> R_co: ...
 
-    def visit_dump_memory(self, op: DumpMemory) -> R_co: ...
+    def visit_dump_memory(self, op: DumpHeap) -> R_co: ...
 
 
 class MacroOpBase(abc.ABC):
@@ -60,6 +62,24 @@ class StoreImmediate(MacroOpBase):
 
 
 @attrs.frozen
+class Push(MacroOpBase):
+    type: ImmediateType
+    source: bytearray
+
+    def accept[R](self, visitor: MacroOpVisitor[R]) -> R:
+        return visitor.visit_push(self)
+
+
+@attrs.frozen
+class Pop(MacroOpBase):
+    type: ImmediateType
+    destination: RegisterNumber
+
+    def accept[R](self, visitor: MacroOpVisitor[R]) -> R:
+        return visitor.visit_pop(self)
+
+
+@attrs.frozen
 class BinaryArithmetic(MacroOpBase):
     func: BinaryArithmeticFunc
     type: ImmediateType
@@ -84,7 +104,7 @@ class UnaryArithmetic(MacroOpBase):
 
 # !! TEMPORARY !! #
 @attrs.frozen
-class DumpMemory(MacroOpBase):
+class DumpHeap(MacroOpBase):
     section_id: int
 
     def accept[R](self, visitor: MacroOpVisitor[R]) -> R:
@@ -92,5 +112,6 @@ class DumpMemory(MacroOpBase):
 
 
 type LoadStoreMacroOp = Load | Store | StoreImmediate
-type DebugMacroOp = DumpMemory
+type StackMacroOp = Push | Pop
+type DebugMacroOp = DumpHeap
 type MacroOp = LoadStoreMacroOp | BinaryArithmetic | UnaryArithmetic | DebugMacroOp

@@ -4,7 +4,7 @@ import io
 import time
 import typing
 
-from marrow.compiler.backend.macro.ops import DumpMemory
+from marrow.compiler.backend.macro.ops import DumpHeap
 from marrow.compiler.components import Parser
 from marrow.compiler.components import Tokenizer
 from marrow.compiler.renderers.util import render_memory_location
@@ -134,7 +134,7 @@ class Compiler:
         self.tooling.logger.info(self.make_macro_ops_generation_log(macro_ops))
 
         if self.debug:
-            macro_ops.append(DumpMemory(0))
+            macro_ops.append(DumpHeap(0))
             self.tooling.logger.info("injected memory dump op")
 
         self.resources.macro_ops = macro_ops
