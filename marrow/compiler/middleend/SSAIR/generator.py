@@ -71,6 +71,8 @@ class IRGenerator(expr.ExprVisitor[None]):
         self.instructions.append(instruction)
 
     def generate(self, expr: expr.Expr) -> list[IRInstruction]:
+        self.instructions.clear()
+
         expr.accept(self)
 
         return self.instructions

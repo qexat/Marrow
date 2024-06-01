@@ -13,7 +13,6 @@ from marrow.tooling import CompilerTooling
 from .resources import CompilerResources
 
 if typing.TYPE_CHECKING:
-    from marrow.compiler.common import Expr
     from marrow.compiler.common import IRInstruction
     from marrow.compiler.common import MacroOp
     from marrow.tooling import GlobalTooling
@@ -55,11 +54,14 @@ class Compiler:
 
         self.tooling.logger.note(buffer.getvalue())
 
-    def make_parse_tree_log(self, parse_tree: Expr) -> str:
+    def make_parse_tree_log(self) -> str:
         buffer = io.StringIO()
 
         print("rendering the parse tree", file=buffer)
-        print(self.tooling.parse_tree_renderer.render(parse_tree), file=buffer)
+        print(
+            self.tooling.parse_tree_renderer.render(self.resources.parse_tree),
+            file=buffer,
+        )
 
         return buffer.getvalue().removesuffix("\n")
 
@@ -111,10 +113,10 @@ class Compiler:
         parse_tree = Parser(self.resources.tokens, self.tooling).run()
         self.tooling.logger.info("parsed source")
 
-        if self.debug:
-            self.tooling.logger.debug(self.make_parse_tree_log(parse_tree))
-
         self.resources.parse_tree = parse_tree
+
+        if self.debug:
+            self.tooling.logger.debug(self.make_parse_tree_log())
 
     def generate_ssa_ir(self) -> None:
         ir = self.tooling.ir_generator.generate(self.resources.parse_tree)

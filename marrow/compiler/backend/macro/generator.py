@@ -167,6 +167,8 @@ class MacroOpGenerator:
         return buffer.getvalue()
 
     def generate(self, ir: collections.abc.Iterable[IRInstruction]) -> list[MacroOp]:
+        self.ops.clear()
+
         for instruction in ir:
             self.lower(instruction)
 

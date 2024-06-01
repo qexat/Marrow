@@ -84,6 +84,11 @@ class Environment:
                 if not source_string:
                     continue
 
+                if self.debug:
+                    self.tooling.logger.debug(
+                        f"instruction pointer: {self.machine.instruction_count}",
+                    )
+
                 source = io.StringIO(source_string)
 
                 if self.compiler.compile(source) == 0:
