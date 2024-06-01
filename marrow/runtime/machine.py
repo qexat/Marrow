@@ -67,25 +67,6 @@ class Machine(MacroOpVisitor[None]):
         self.access_tracking: list[Access] = []
         self.tooling = RuntimeTooling.from_global(tooling)
 
-    @typing.overload
-    def get_register(
-        self,
-        number: RegisterNumber,
-        type: typing.Literal[ImmediateType.FLOAT],
-    ) -> float: ...
-    @typing.overload
-    def get_register(
-        self,
-        number: RegisterNumber,
-        type: typing.Literal[ImmediateType.INTEGER],
-    ) -> int: ...
-    @typing.overload
-    def get_register(
-        self,
-        number: RegisterNumber,
-        type: ImmediateType,
-    ) -> RuntimeType: ...
-
     def get_register(self, number: RegisterNumber, type: ImmediateType) -> RuntimeType:
         value = self.get_register_raw(number)
 
